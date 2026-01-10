@@ -19,6 +19,16 @@ export default function Carteirinhas() {
     // Edit state
     const [editingItem, setEditingItem] = useState(null);
 
+    // Create state
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    const [newCarteirinha, setNewCarteirinha] = useState({
+        carteirinha: '',
+        paciente: '',
+        id_paciente: '',
+        id_pagamento: '',
+        status: 'ativo'
+    });
+
     const fetchCarteirinhas = async () => {
         setLoading(true);
         try {
@@ -73,6 +83,29 @@ export default function Carteirinhas() {
         } catch (e) { alert("Erro ao excluir"); }
     };
 
+    const handleCreate = async (e) => {
+        e.preventDefault();
+        try {
+            setLoading(true);
+            await axios.post('/api/carteirinhas', {
+                carteirinha: newCarteirinha.carteirinha,
+                paciente: newCarteirinha.paciente,
+                id_paciente: newCarteirinha.id_paciente ? parseInt(newCarteirinha.id_paciente) : null,
+                id_pagamento: newCarteirinha.id_pagamento ? parseInt(newCarteirinha.id_pagamento) : null,
+                status: newCarteirinha.status
+            });
+            alert("Carteirinha criada com sucesso!");
+            setShowCreateForm(false);
+            setNewCarteirinha({ carteirinha: '', paciente: '', id_paciente: '', id_pagamento: '', status: 'ativo' });
+            setPage(1);
+            fetchCarteirinhas();
+        } catch (e) {
+            alert("Erro ao criar: " + (e.response?.data?.detail || e.message));
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div>
             <h1>Gerenciamento de Carteirinhas</h1>
@@ -95,6 +128,80 @@ export default function Carteirinhas() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <h3>Carteirinhas Cadastradas ({totalItems})</h3>
 
+                    <button
+                        className="btn btn-primary"
+                        onClick={() => setShowCreateForm(!showCreateForm)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <Plus size={16} />
+                        {showCreateForm ? 'Cancelar' : 'Nova Carteirinha'}
+                    </button>
+                </div>
+
+                {/* Create Form */}
+                {showCreateForm && (
+                    <form onSubmit={handleCreate} style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
+                        <h4 style={{ marginBottom: '1rem' }}>Nova Carteirinha</h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Carteirinha *</label>
+                                <input
+                                    type="text"
+                                    value={newCarteirinha.carteirinha}
+                                    onChange={(e) => setNewCarteirinha({ ...newCarteirinha, carteirinha: e.target.value })}
+                                    placeholder="0064.8000.000000.00-0"
+                                    required
+                                    maxLength={21}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Paciente</label>
+                                <input
+                                    type="text"
+                                    value={newCarteirinha.paciente}
+                                    onChange={(e) => setNewCarteirinha({ ...newCarteirinha, paciente: e.target.value })}
+                                    placeholder="Nome do paciente"
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>ID Paciente</label>
+                                <input
+                                    type="number"
+                                    value={newCarteirinha.id_paciente}
+                                    onChange={(e) => setNewCarteirinha({ ...newCarteirinha, id_paciente: e.target.value })}
+                                    placeholder="123"
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>ID Pagamento</label>
+                                <input
+                                    type="number"
+                                    value={newCarteirinha.id_pagamento}
+                                    onChange={(e) => setNewCarteirinha({ ...newCarteirinha, id_pagamento: e.target.value })}
+                                    placeholder="456"
+                                />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Status</label>
+                                <select
+                                    value={newCarteirinha.status}
+                                    onChange={(e) => setNewCarteirinha({ ...newCarteirinha, status: e.target.value })}
+                                >
+                                    <option value="ativo">Ativo</option>
+                                    <option value="inativo">Inativo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            <button type="button" className="btn" onClick={() => setShowCreateForm(false)}>Cancelar</button>
+                            <button type="submit" className="btn btn-primary" disabled={loading}>Salvar</button>
+                        </div>
+                    </form>
+                )}
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <div></div>
+
                     <div className="search-box" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                         <Search size={18} style={{ position: 'absolute', left: 10, color: '#aaa' }} />
                         <input
@@ -114,6 +221,9 @@ export default function Carteirinhas() {
                                 <th style={{ width: '50px' }}>ID</th>
                                 <th>Carteirinha</th>
                                 <th>Paciente</th>
+                                <th style={{ width: '100px' }}>ID Paciente</th>
+                                <th style={{ width: '120px' }}>ID Pagamento</th>
+                                <th style={{ width: '80px' }}>Status</th>
                                 <th style={{ width: '100px' }}>Ações</th>
                             </tr>
                         </thead>
@@ -123,6 +233,19 @@ export default function Carteirinhas() {
                                     <td>{c.id}</td>
                                     <td>{c.carteirinha}</td>
                                     <td>{c.paciente}</td>
+                                    <td>{c.id_paciente || '-'}</td>
+                                    <td>{c.id_pagamento || '-'}</td>
+                                    <td>
+                                        <span style={{
+                                            padding: '0.25rem 0.5rem',
+                                            borderRadius: '4px',
+                                            fontSize: '0.85rem',
+                                            background: c.status === 'ativo' ? '#10b981' : '#6b7280',
+                                            color: 'white'
+                                        }}>
+                                            {c.status || 'ativo'}
+                                        </span>
+                                    </td>
                                     <td style={{ display: 'flex', gap: '0.5rem' }}>
                                         <button className="btn-icon" onClick={() => setEditingItem(c)} title="Editar">
                                             <Edit size={16} color="#3b82f6" />
@@ -134,7 +257,7 @@ export default function Carteirinhas() {
                                 </tr>
                             ))}
                             {carteirinhas.length === 0 && (
-                                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '1rem' }}>Nenhum registro encontrado</td></tr>
+                                <tr><td colSpan="7" style={{ textAlign: 'center', padding: '1rem' }}>Nenhum registro encontrado</td></tr>
                             )}
                         </tbody>
                     </table>

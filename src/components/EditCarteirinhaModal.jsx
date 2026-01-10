@@ -5,7 +5,10 @@ import { X, Save } from 'lucide-react';
 export default function EditCarteirinhaModal({ carteirinha, onClose, onSave }) {
     const [formData, setFormData] = useState({
         carteirinha: '',
-        paciente: ''
+        paciente: '',
+        id_paciente: '',
+        id_pagamento: '',
+        status: 'ativo'
     });
     const [loading, setLoading] = useState(false);
 
@@ -13,7 +16,10 @@ export default function EditCarteirinhaModal({ carteirinha, onClose, onSave }) {
         if (carteirinha) {
             setFormData({
                 carteirinha: carteirinha.carteirinha,
-                paciente: carteirinha.paciente
+                paciente: carteirinha.paciente,
+                id_paciente: carteirinha.id_paciente || '',
+                id_pagamento: carteirinha.id_pagamento || '',
+                status: carteirinha.status || 'ativo'
             });
         }
     }, [carteirinha]);
@@ -34,7 +40,14 @@ export default function EditCarteirinhaModal({ carteirinha, onClose, onSave }) {
 
         setLoading(true);
         try {
-            await axios.put(`/api/carteirinhas/${carteirinha.id}`, formData);
+            const payload = {
+                carteirinha: formData.carteirinha,
+                paciente: formData.paciente,
+                id_paciente: formData.id_paciente ? parseInt(formData.id_paciente) : null,
+                id_pagamento: formData.id_pagamento ? parseInt(formData.id_pagamento) : null,
+                status: formData.status
+            };
+            await axios.put(`/api/carteirinhas/${carteirinha.id}`, payload);
             onSave();
             onClose();
         } catch (error) {
@@ -64,13 +77,45 @@ export default function EditCarteirinhaModal({ carteirinha, onClose, onSave }) {
                             required
                         />
                     </div>
-                    <div style={{ marginBottom: '1.5rem' }}>
+                    <div style={{ marginBottom: '1rem' }}>
                         <label>Paciente</label>
                         <input
                             type="text"
                             value={formData.paciente}
                             onChange={e => setFormData({ ...formData, paciente: e.target.value })}
                         />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+                        <div>
+                            <label>ID Paciente</label>
+                            <input
+                                type="number"
+                                value={formData.id_paciente}
+                                onChange={e => setFormData({ ...formData, id_paciente: e.target.value })}
+                                placeholder="123"
+                            />
+                        </div>
+                        <div>
+                            <label>ID Pagamento</label>
+                            <input
+                                type="number"
+                                value={formData.id_pagamento}
+                                onChange={e => setFormData({ ...formData, id_pagamento: e.target.value })}
+                                placeholder="456"
+                            />
+                        </div>
+                    </div>
+
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <label>Status</label>
+                        <select
+                            value={formData.status}
+                            onChange={e => setFormData({ ...formData, status: e.target.value })}
+                        >
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
