@@ -37,16 +37,20 @@ export default function BaseGuias() {
             const params = {
                 limit: pageSize,
                 skip: (page - 1) * pageSize,
-                ...filters
             };
 
-            const res = await api.get('/guias', { params });
-            // Backend now returns { data: [], total: N, ... }
+            // Clean filters (remove empty strings) before request to avoid 422
+            if (filters.created_at_start) params.created_at_start = filters.created_at_start;
+            if (filters.created_at_end) params.created_at_end = filters.created_at_end;
+            if (filters.carteirinha_id) params.carteirinha_id = filters.carteirinha_id;
+
+            // Note: Added trailing slash to avoid 307 Redirects if defined in backend with slash
+            const res = await api.get('/guias/', { params });
+
             if (res.data.data) {
                 setGuias(res.data.data);
                 setTotalItems(res.data.total);
             } else {
-                // Fallback if backend not updated yet (shouldn't happen if deployed)
                 setGuias(res.data);
                 setTotalItems(res.data.length);
             }
@@ -68,7 +72,11 @@ export default function BaseGuias() {
 
     const handleExport = async () => {
         try {
-            const params = { ...filters };
+            const params = {};
+            if (filters.created_at_start) params.created_at_start = filters.created_at_start;
+            if (filters.created_at_end) params.created_at_end = filters.created_at_end;
+            if (filters.carteirinha_id) params.carteirinha_id = filters.carteirinha_id;
+
             const response = await api.get('/guias/export', {
                 params,
                 responseType: 'blob',

@@ -47,9 +47,15 @@ export default function Importacoes() {
       const params = {
         limit: pageSize,
         skip: (page - 1) * pageSize,
-        ...filters
       };
-      const res = await api.get('/jobs', { params });
+
+      // Clean filters to prevent 422
+      if (filters.status) params.status = filters.status;
+      if (filters.created_at_start) params.created_at_start = filters.created_at_start;
+      if (filters.created_at_end) params.created_at_end = filters.created_at_end;
+
+      const res = await api.get('/jobs/', { params }); // Added trailing slash
+
       if (res.data.data) {
         setJobs(res.data.data);
         setTotalJobs(res.data.total);
@@ -148,7 +154,7 @@ export default function Importacoes() {
             <div style={{ flex: 1, minWidth: '300px' }}>
               <label>Selecione os Pacientes</label>
 
-              {/* Restored Custom Search + Add Component */}
+              {/* Custom Search + Add Component */}
               {importType === 'multiple' ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
