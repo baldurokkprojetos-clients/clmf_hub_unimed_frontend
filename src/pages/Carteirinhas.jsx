@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { Trash2, Upload, Plus, Edit, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import EditCarteirinhaModal from '../components/EditCarteirinhaModal';
 
@@ -36,7 +36,7 @@ export default function Carteirinhas() {
             const params = { skip, limit };
             if (search) params.search = search;
 
-            const res = await axios.get('/api/carteirinhas/', { params });
+            const res = await api.get('/carteirinhas/', { params });
             // Backend now returns { data, total, skip, limit }
             setCarteirinhas(res.data.data || res.data); // Fallback if backend not updated instantly often cache issues
             if (res.data.total !== undefined) {
@@ -61,7 +61,7 @@ export default function Carteirinhas() {
 
         try {
             setLoading(true);
-            await axios.post('/api/carteirinhas/upload', formData, {
+            await api.post('/carteirinhas/upload', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             alert("Upload realizado com sucesso!");
@@ -78,7 +78,7 @@ export default function Carteirinhas() {
     const handleDelete = async (id) => {
         if (!confirm("Excluir carteirinha?")) return;
         try {
-            await axios.delete(`/api/carteirinhas/${id}`);
+            await api.delete(`/carteirinhas/${id}`);
             fetchCarteirinhas();
         } catch (e) { alert("Erro ao excluir"); }
     };
@@ -87,7 +87,7 @@ export default function Carteirinhas() {
         e.preventDefault();
         try {
             setLoading(true);
-            await axios.post('/api/carteirinhas', {
+            await api.post('/carteirinhas', {
                 carteirinha: newCarteirinha.carteirinha,
                 paciente: newCarteirinha.paciente,
                 id_paciente: newCarteirinha.id_paciente ? parseInt(newCarteirinha.id_paciente) : null,
