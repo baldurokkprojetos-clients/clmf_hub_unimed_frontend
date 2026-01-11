@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { Download, Play, Search, Filter } from 'lucide-react';
 
 export default function Importacoes() {
@@ -30,7 +30,7 @@ export default function Importacoes() {
       if (filters.created_at_end) params.created_at_end = filters.created_at_end;
       if (filters.carteirinha_id) params.carteirinha_id = filters.carteirinha_id;
 
-      const res = await axios.get('/api/guias', { params });
+      const res = await api.get('/guias', { params });
       setGuias(res.data);
     } catch (error) {
       console.error("Error fetching guias", error);
@@ -41,7 +41,7 @@ export default function Importacoes() {
 
   const fetchCarteirinhas = async () => {
     try {
-      const res = await axios.get('/api/carteirinhas/?limit=1000'); // Get all for select
+      const res = await api.get('/carteirinhas/?limit=1000'); // Get all for select
       setCarteirinhas(res.data.data || res.data);
     } catch (e) { console.error(e); }
   };
@@ -71,7 +71,7 @@ export default function Importacoes() {
         carteirinha_ids: (importType === 'all') ? [] : selectedCarteirinhas
       };
 
-      await axios.post('/api/jobs/', payload);
+      await api.post('/jobs/', payload);
       alert("Jobs criados com sucesso!");
       setSelectedCarteirinhas([]);
     } catch (e) {
@@ -94,7 +94,7 @@ export default function Importacoes() {
       if (filters.created_at_end) params.created_at_end = filters.created_at_end;
       if (filters.carteirinha_id) params.carteirinha_id = filters.carteirinha_id;
 
-      const response = await axios.get('/api/guias/export', {
+      const response = await api.get('/guias/export', {
         params,
         responseType: 'blob',
       });

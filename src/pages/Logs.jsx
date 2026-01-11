@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { RefreshCcw } from 'lucide-react';
 
 export default function Logs() {
@@ -9,7 +9,7 @@ export default function Logs() {
   const fetchLogs = async () => {
     setLoading(true);
     try {
-      const res = await axios.get('/api/logs/');
+      const res = await api.get('/api/logs/');
       setLogs(res.data);
     } catch (e) {
       console.error(e);

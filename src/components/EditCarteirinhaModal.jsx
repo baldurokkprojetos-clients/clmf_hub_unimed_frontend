@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 import { X, Save } from 'lucide-react';
 
 export default function EditCarteirinhaModal({ carteirinha, onClose, onSave }) {
@@ -47,7 +47,7 @@ export default function EditCarteirinhaModal({ carteirinha, onClose, onSave }) {
                 id_pagamento: formData.id_pagamento ? parseInt(formData.id_pagamento) : null,
                 status: formData.status
             };
-            await axios.put(`/api/carteirinhas/${carteirinha.id}`, payload);
+            await api.put(`/carteirinhas/${carteirinha.id}`, payload);
             onSave();
             onClose();
         } catch (error) {
