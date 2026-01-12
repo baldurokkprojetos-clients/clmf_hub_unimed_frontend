@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Pagination from '../components/Pagination';
-import { Download, Filter, X } from 'lucide-react';
+import { Download, Filter, X, Calendar } from 'lucide-react';
 
 export default function BaseGuias() {
     const [guias, setGuias] = useState([]);
@@ -29,7 +29,7 @@ export default function BaseGuias() {
     // Fetch Guias with effect on dependencies
     useEffect(() => {
         fetchGuias();
-    }, [page, pageSize, filters]); // Auto-filter when these change
+    }, [page, pageSize, filters]);
 
     const fetchGuias = async () => {
         setLoading(true);
@@ -39,12 +39,15 @@ export default function BaseGuias() {
                 skip: (page - 1) * pageSize,
             };
 
-            // Clean filters (remove empty strings) before request to avoid 422
+            // Clean filters
+            if (filters.status) params.status = filters.status;
             if (filters.created_at_start) params.created_at_start = filters.created_at_start;
             if (filters.created_at_end) params.created_at_end = filters.created_at_end;
-            if (filters.carteirinha_id) params.carteirinha_id = filters.carteirinha_id;
+            // Ensure ID is passed correctly (not empty string)
+            if (filters.carteirinha_id && filters.carteirinha_id !== "") {
+                params.carteirinha_id = parseInt(filters.carteirinha_id);
+            }
 
-            // Note: Added trailing slash to avoid 307 Redirects if defined in backend with slash
             const res = await api.get('/guias/', { params });
 
             if (res.data.data) {
@@ -111,7 +114,7 @@ export default function BaseGuias() {
                             value={filters.carteirinha_id}
                             onChange={e => {
                                 setFilters({ ...filters, carteirinha_id: e.target.value });
-                                setPage(1); // Reset page on filter
+                                setPage(1);
                             }}
                         >
                             <option value="">Todos os Pacientes</option>
@@ -122,27 +125,38 @@ export default function BaseGuias() {
                             ))}
                         </select>
                     </div>
+
+                    {/* Date Inputs with Calendar Icon */}
                     <div>
                         <label>Data Import. Início</label>
-                        <input
-                            type="date"
-                            value={filters.created_at_start}
-                            onChange={e => {
-                                setFilters({ ...filters, created_at_start: e.target.value });
-                                setPage(1);
-                            }}
-                        />
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <Calendar size={18} style={{ position: 'absolute', left: 8, color: '#aaa', pointerEvents: 'none' }} />
+                            <input
+                                type="date"
+                                style={{ paddingLeft: '32px', paddingRight: '10px', height: '38px', borderRadius: '4px', background: '#333', border: '1px solid #555', color: 'white' }}
+                                value={filters.created_at_start}
+                                onChange={e => {
+                                    setFilters({ ...filters, created_at_start: e.target.value });
+                                    setPage(1);
+                                }}
+                            />
+                        </div>
                     </div>
+
                     <div>
                         <label>Data Import. Fim</label>
-                        <input
-                            type="date"
-                            value={filters.created_at_end}
-                            onChange={e => {
-                                setFilters({ ...filters, created_at_end: e.target.value });
-                                setPage(1);
-                            }}
-                        />
+                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <Calendar size={18} style={{ position: 'absolute', left: 8, color: '#aaa', pointerEvents: 'none' }} />
+                            <input
+                                type="date"
+                                style={{ paddingLeft: '32px', paddingRight: '10px', height: '38px', borderRadius: '4px', background: '#333', border: '1px solid #555', color: 'white' }}
+                                value={filters.created_at_end}
+                                onChange={e => {
+                                    setFilters({ ...filters, created_at_end: e.target.value });
+                                    setPage(1);
+                                }}
+                            />
+                        </div>
                     </div>
 
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
