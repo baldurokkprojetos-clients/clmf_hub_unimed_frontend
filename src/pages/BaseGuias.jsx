@@ -19,6 +19,7 @@ export default function BaseGuias() {
         carteirinha_id: ''
     });
 
+
     // Fetch Carteirinhas for select
     useEffect(() => {
         api.get('/carteirinhas/?limit=1000').then(res => {
@@ -217,6 +218,8 @@ export default function BaseGuias() {
                     onPageSizeChange={setPageSize}
                 />
             </div>
+
+
         </div>
     );
 }

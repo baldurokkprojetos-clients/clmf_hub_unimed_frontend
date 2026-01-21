@@ -7,6 +7,7 @@ import Logs from './pages/Logs';
 import Login from './pages/Login';
 import BaseGuias from './pages/BaseGuias';
 import Dashboard from './pages/Dashboard';
+import GestaoPei from './pages/GestaoPei';
 
 const INACTIVITY_TIMEOUT = 20 * 60 * 1000; // 20 minutes
 
@@ -41,6 +42,9 @@ function Sidebar() {
         </Link>
         <Link to="/carteirinhas" className={`nav-item ${isActive('/carteirinhas')}`}>
           <Users size={20} /> Carteirinhas
+        </Link>
+        <Link to="/pei" className={`nav-item ${isActive('/pei')}`}>
+          <Table size={20} /> Gestão PEI
         </Link>
         <Link to="/logs" className={`nav-item ${isActive('/logs')}`}>
           <Activity size={20} /> Logs
@@ -109,6 +113,17 @@ export default function App() {
               <Sidebar />
               <main className="main-content">
                 <Carteirinhas />
+              </main>
+            </div>
+          </PrivateRoute>
+        } />
+
+        <Route path="/pei" element={
+          <PrivateRoute>
+            <div className="app-container">
+              <Sidebar />
+              <main className="main-content">
+                <GestaoPei />
               </main>
             </div>
           </PrivateRoute>
