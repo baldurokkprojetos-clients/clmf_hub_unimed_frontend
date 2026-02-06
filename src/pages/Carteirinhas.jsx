@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { Trash2, Upload, Plus, Edit, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import EditCarteirinhaModal from '../components/EditCarteirinhaModal';
+import { maskCarteirinha, validateCarteirinha } from '../utils/formatters';
 
 export default function Carteirinhas() {
     const [carteirinhas, setCarteirinhas] = useState([]);
@@ -13,8 +15,19 @@ export default function Carteirinhas() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
-    const [search, setSearch] = useState("");
+
+    // Filters
+    const [filters, setFilters] = useState({
+        search: '',
+        status: '',
+        id_pagamento: '',
+        paciente: ''
+    });
+
     const limit = 10;
+
+    // Sorting
+    const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' });
 
     // Edit state
     const [editingItem, setEditingItem] = useState(null);
@@ -33,8 +46,14 @@ export default function Carteirinhas() {
         setLoading(true);
         try {
             const skip = (page - 1) * limit;
-            const params = { skip, limit };
-            if (search) params.search = search;
+            const params = {
+                skip,
+                limit,
+                search: filters.search,
+                status: filters.status,
+                id_pagamento: filters.id_pagamento,
+                paciente: filters.paciente
+            };
 
             const res = await api.get('/carteirinhas/', { params });
             // Backend now returns { data, total, skip, limit }
@@ -49,7 +68,32 @@ export default function Carteirinhas() {
 
     useEffect(() => {
         fetchCarteirinhas();
-    }, [page, search]); // Re-fetch on page or search change
+    }, [page, filters]); // Re-fetch on page or filters change
+
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedCarteirinhas = React.useMemo(() => {
+        if (!carteirinhas) return [];
+        let sortableItems = [...carteirinhas];
+        if (sortConfig.key) {
+            sortableItems.sort((a, b) => {
+                if (a[sortConfig.key] < b[sortConfig.key]) {
+                    return sortConfig.direction === 'asc' ? -1 : 1;
+                }
+                if (a[sortConfig.key] > b[sortConfig.key]) {
+                    return sortConfig.direction === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableItems;
+    }, [carteirinhas, sortConfig]);
 
     const handleUpload = async (e) => {
         e.preventDefault();
@@ -78,13 +122,19 @@ export default function Carteirinhas() {
     const handleDelete = async (id) => {
         if (!confirm("Excluir carteirinha?")) return;
         try {
-            await api.delete(`/carteirinhas/${id}`);
+            await api.delete(`/ carteirinhas / ${id} `);
             fetchCarteirinhas();
         } catch (e) { alert("Erro ao excluir"); }
     };
 
     const handleCreate = async (e) => {
         e.preventDefault();
+
+        if (!validateCarteirinha(newCarteirinha.carteirinha)) {
+            alert("Carteirinha inválida! Deve conter 21 caracteres, ex: 0000.0000.000000.00-0");
+            return;
+        }
+
         try {
             setLoading(true);
             await api.post('/carteirinhas', {
@@ -148,8 +198,8 @@ export default function Carteirinhas() {
                                 <input
                                     type="text"
                                     value={newCarteirinha.carteirinha}
-                                    onChange={(e) => setNewCarteirinha({ ...newCarteirinha, carteirinha: e.target.value })}
-                                    placeholder="0064.8000.000000.00-0"
+                                    onChange={(e) => setNewCarteirinha({ ...newCarteirinha, carteirinha: maskCarteirinha(e.target.value) })}
+                                    placeholder="0000.0000.000000.00-0"
                                     required
                                     maxLength={21}
                                 />
@@ -202,40 +252,89 @@ export default function Carteirinhas() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                     <div></div>
 
-                    <div className="search-box" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                        <Search size={18} style={{ position: 'absolute', left: 10, color: '#aaa' }} />
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
+
+                        <div className="search-box" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <Search size={18} style={{ position: 'absolute', left: 10, color: '#aaa' }} />
+                            <input
+                                type="text"
+                                placeholder="Busca Geral..."
+                                value={filters.search}
+                                onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(1); }}
+                                style={{ paddingLeft: '35px', width: '200px', background: '#222', border: '1px solid #444', color: 'white', padding: '8px 8px 8px 35px', borderRadius: '4px' }}
+                            />
+                        </div>
+
                         <input
                             type="text"
-                            placeholder="Pesquisar..."
-                            value={search}
-                            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                            style={{ paddingLeft: '35px', maxWidth: '250px' }}
+                            placeholder="Filtrar Paciente"
+                            value={filters.paciente}
+                            onChange={(e) => { setFilters({ ...filters, paciente: e.target.value }); setPage(1); }}
+                            style={{ background: '#222', border: '1px solid #444', color: 'white', padding: '8px', borderRadius: '4px' }}
                         />
+
+                        <input
+                            type="text"
+                            placeholder="ID Pagamento"
+                            value={filters.id_pagamento}
+                            onChange={(e) => { setFilters({ ...filters, id_pagamento: e.target.value }); setPage(1); }}
+                            style={{ background: '#222', border: '1px solid #444', color: 'white', padding: '8px', borderRadius: '4px', width: '120px' }}
+                        />
+
+                        <select
+                            value={filters.status}
+                            onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setPage(1); }}
+                            style={{ background: '#222', border: '1px solid #444', color: 'white', padding: '8px', borderRadius: '4px' }}
+                        >
+                            <option value="">Status: Todos</option>
+                            <option value="ativo">Ativo</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+
+                        <button
+                            className="btn"
+                            onClick={() => setFilters({ search: '', status: '', id_pagamento: '', paciente: '' })}
+                            style={{ fontSize: '0.8rem', opacity: 0.8 }}
+                        >
+                            Limpar
+                        </button>
                     </div>
                 </div>
 
                 <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-                    <table style={{ width: '100%' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                         <thead>
-                            <tr>
-                                <th style={{ width: '50px' }}>ID</th>
-                                <th>Carteirinha</th>
-                                <th>Paciente</th>
-                                <th style={{ width: '100px' }}>ID Paciente</th>
-                                <th style={{ width: '120px' }}>ID Pagamento</th>
-                                <th style={{ width: '80px' }}>Status</th>
-                                <th style={{ width: '100px' }}>Ações</th>
+                            <tr style={{ background: 'rgba(255,255,255,0.05)' }}>
+                                <th style={{ width: '50px', cursor: 'pointer', padding: '0.8rem' }} onClick={() => handleSort('id')}>
+                                    ID {sortConfig.key === 'id' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                                </th>
+                                <th style={{ cursor: 'pointer', padding: '0.8rem' }} onClick={() => handleSort('carteirinha')}>
+                                    Carteirinha {sortConfig.key === 'carteirinha' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                                </th>
+                                <th style={{ cursor: 'pointer', padding: '0.8rem' }} onClick={() => handleSort('paciente')}>
+                                    Paciente {sortConfig.key === 'paciente' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                                </th>
+                                <th style={{ width: '100px', cursor: 'pointer', padding: '0.8rem' }} onClick={() => handleSort('id_paciente')}>
+                                    ID Paciente {sortConfig.key === 'id_paciente' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                                </th>
+                                <th style={{ width: '120px', cursor: 'pointer', padding: '0.8rem' }} onClick={() => handleSort('id_pagamento')}>
+                                    ID Pagamento {sortConfig.key === 'id_pagamento' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                                </th>
+                                <th style={{ width: '80px', cursor: 'pointer', padding: '0.8rem' }} onClick={() => handleSort('status')}>
+                                    Status {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                                </th>
+                                <th style={{ width: '100px', padding: '0.8rem' }}>Ações</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {carteirinhas.map(c => (
-                                <tr key={c.id}>
-                                    <td>{c.id}</td>
-                                    <td>{c.carteirinha}</td>
-                                    <td>{c.paciente}</td>
-                                    <td>{c.id_paciente || '-'}</td>
-                                    <td>{c.id_pagamento || '-'}</td>
-                                    <td>
+                            {sortedCarteirinhas.map(c => (
+                                <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                    <td style={{ padding: '0.8rem' }}>{c.id}</td>
+                                    <td style={{ padding: '0.8rem' }}>{c.carteirinha}</td>
+                                    <td style={{ padding: '0.8rem' }}>{c.paciente}</td>
+                                    <td style={{ padding: '0.8rem' }}>{c.id_paciente || '-'}</td>
+                                    <td style={{ padding: '0.8rem' }}>{c.id_pagamento || '-'}</td>
+                                    <td style={{ padding: '0.8rem' }}>
                                         <span style={{
                                             padding: '0.25rem 0.5rem',
                                             borderRadius: '4px',
@@ -246,7 +345,7 @@ export default function Carteirinhas() {
                                             {c.status || 'ativo'}
                                         </span>
                                     </td>
-                                    <td style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <td style={{ display: 'flex', gap: '0.5rem', padding: '0.8rem' }}>
                                         <button className="btn-icon" onClick={() => setEditingItem(c)} title="Editar">
                                             <Edit size={16} color="#3b82f6" />
                                         </button>
@@ -256,7 +355,7 @@ export default function Carteirinhas() {
                                     </td>
                                 </tr>
                             ))}
-                            {carteirinhas.length === 0 && (
+                            {sortedCarteirinhas.length === 0 && (
                                 <tr><td colSpan="7" style={{ textAlign: 'center', padding: '1rem' }}>Nenhum registro encontrado</td></tr>
                             )}
                         </tbody>

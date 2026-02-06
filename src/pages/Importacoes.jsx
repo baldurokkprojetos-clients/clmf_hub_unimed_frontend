@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Pagination from '../components/Pagination';
 import { Play, Filter, RefreshCcw, Trash2, Clock, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { formatDateTime, maskCarteirinha, validateCarteirinha } from '../utils/formatters';
 
 export default function Importacoes() {
   const [loading, setLoading] = useState(false);
@@ -11,6 +12,9 @@ export default function Importacoes() {
   const [importType, setImportType] = useState('single');
   const [carteirinhas, setCarteirinhas] = useState([]);
   const [selectedCarteirinhas, setSelectedCarteirinhas] = useState([]);
+
+  // Sorting State
+  const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
 
   // Jobs List State
   const [jobs, setJobs] = useState([]);
@@ -61,9 +65,36 @@ export default function Importacoes() {
         setTotalJobs(res.data.total);
       } else {
         setJobs(res.data);
+        // If total not returned, assume length (rare legacy)
+        // setTotalJobs(res.data.length);
       }
     } catch (e) { console.error("Error fetching jobs", e); }
   };
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const sortedJobs = React.useMemo(() => {
+    if (!jobs) return [];
+    let sortableItems = [...jobs];
+    if (sortConfig.key) {
+      sortableItems.sort((a, b) => {
+        if (a[sortConfig.key] < b[sortConfig.key]) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (a[sortConfig.key] > b[sortConfig.key]) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [jobs, sortConfig]);
 
   const handleCreateJob = async () => {
     const typeMap = { 'single': 'single', 'multiple': 'multiple', 'all': 'all' };
@@ -76,15 +107,46 @@ export default function Importacoes() {
     if (importType === 'all' && !confirm("Deseja processar TODAS as carteirinhas?")) return;
 
     try {
-      const payload = {
-        type: typeMap[importType],
-        carteirinha_ids: (importType === 'all') ? [] : selectedCarteirinhas
-      };
+      let payload = {};
+
+      if (importType === 'temp') {
+        const cartInput = document.getElementById('temp-carteirinha').value;
+        const pacInput = document.getElementById('temp-paciente').value;
+
+        if (!cartInput || !pacInput) {
+          alert("Preencha carteirinha e nome do paciente.");
+          return;
+        }
+
+        if (!validateCarteirinha(cartInput)) {
+          alert("Carteirinha inválida! Formato deve ser 0000.0000.000000.00-0");
+          return;
+        }
+
+        payload = {
+          type: 'temp',
+          temp_patient: {
+            carteirinha: cartInput,
+            paciente: pacInput
+          }
+        };
+      } else {
+        payload = {
+          type: typeMap[importType],
+          carteirinha_ids: (importType === 'all') ? [] : selectedCarteirinhas
+        };
+      }
 
       await api.post('/jobs/', payload);
       alert("Solicitações criadas com sucesso!");
       setSelectedCarteirinhas([]);
       fetchJobs();
+
+      // Clear inputs if temp
+      if (importType === 'temp') {
+        document.getElementById('temp-carteirinha').value = '';
+        document.getElementById('temp-paciente').value = '';
+      }
     } catch (e) {
       alert("Erro ao criar jobs: " + (e.response?.data?.detail || e.message));
     }
@@ -129,6 +191,11 @@ export default function Importacoes() {
     return `${minutes}m ${seconds % 60}s`;
   };
 
+  // Handler for masking input
+  const handleTempCarteirinhaChange = (e) => {
+    e.target.value = maskCarteirinha(e.target.value);
+  };
+
   return (
     <div>
       <h1 style={{ fontSize: '2rem', marginBottom: '1.5rem' }}>Importações / Jobs - {username}</h1>
@@ -137,6 +204,7 @@ export default function Importacoes() {
       <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
         <h3>Nova Solicitação</h3>
         <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start', marginTop: '1rem' }}>
+
           <div style={{ minWidth: '200px' }}>
             <label>Tipo de Importação</label>
             <select
@@ -147,10 +215,36 @@ export default function Importacoes() {
               <option value="single">Única</option>
               <option value="multiple">Múltipla</option>
               <option value="all">Todos</option>
+              <option value="temp">Paciente Temporário</option>
             </select>
           </div>
 
-          {importType !== 'all' && (
+          {importType === 'temp' && (
+            <div style={{ flex: 1, minWidth: '300px', display: 'flex', gap: '1rem' }}>
+              <div style={{ flex: 1 }}>
+                <label>Carteirinha (Temp)</label>
+                <input
+                  type="text"
+                  placeholder="Ex: 0000.0000.000000.00-0"
+                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#333', color: 'white', border: '1px solid #444' }}
+                  id="temp-carteirinha"
+                  maxLength={21}
+                  onChange={handleTempCarteirinhaChange}
+                />
+              </div>
+              <div style={{ flex: 1 }}>
+                <label>Nome do Paciente</label>
+                <input
+                  type="text"
+                  placeholder="Nome Completo"
+                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#333', color: 'white', border: '1px solid #444' }}
+                  id="temp-paciente"
+                />
+              </div>
+            </div>
+          )}
+
+          {importType !== 'all' && importType !== 'temp' && (
             <div style={{ flex: 1, minWidth: '300px' }}>
               <label>Selecione os Pacientes</label>
 
@@ -271,30 +365,38 @@ export default function Importacoes() {
         </div>
 
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr>
-                <th>ID</th>
-                <th>Data Criação</th>
-                <th>Status</th>
-                <th>Tentativas</th>
+              <tr style={{ background: 'rgba(255,255,255,0.05)' }}>
+                <th onClick={() => handleSort('id')} style={{ cursor: 'pointer' }}>
+                  ID {sortConfig.key === 'id' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                </th>
+                <th onClick={() => handleSort('created_at')} style={{ cursor: 'pointer' }}>
+                  Data Criação {sortConfig.key === 'created_at' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                </th>
+                <th onClick={() => handleSort('status')} style={{ cursor: 'pointer' }}>
+                  Status {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                </th>
+                <th onClick={() => handleSort('attempts')} style={{ cursor: 'pointer' }}>
+                  Tentativas {sortConfig.key === 'attempts' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                </th>
                 <th>Tempo Proc.</th>
                 <th>Ações</th>
               </tr>
             </thead>
             <tbody>
-              {jobs.map(job => (
-                <tr key={job.id}>
-                  <td>{job.id}</td>
-                  <td>{new Date(job.created_at).toLocaleString()}</td>
-                  <td>
+              {sortedJobs.map(job => (
+                <tr key={job.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                  <td style={{ padding: '0.8rem' }}>{job.id}</td>
+                  <td style={{ padding: '0.8rem' }}>{formatDateTime(job.created_at)}</td>
+                  <td style={{ padding: '0.8rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                       {getStatusIcon(job.status)} {job.status}
                     </div>
                   </td>
-                  <td>{job.attempts}</td>
-                  <td>{calculateDuration(job.created_at, job.updated_at)}</td>
-                  <td>
+                  <td style={{ padding: '0.8rem' }}>{job.attempts}</td>
+                  <td style={{ padding: '0.8rem' }}>{calculateDuration(job.created_at, job.updated_at)}</td>
+                  <td style={{ padding: '0.8rem' }}>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       {(job.status === 'error' && job.attempts > 3) ? (
                         <>
@@ -312,7 +414,7 @@ export default function Importacoes() {
                   </td>
                 </tr>
               ))}
-              {jobs.length === 0 && <tr><td colSpan="6" style={{ textAlign: 'center' }}>Nenhum job encontrado.</td></tr>}
+              {sortedJobs.length === 0 && <tr><td colSpan="6" style={{ textAlign: 'center', padding: '1rem' }}>Nenhum job encontrado.</td></tr>}
             </tbody>
           </table>
         </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Pagination from '../components/Pagination';
 import { Download, Filter, X, Calendar } from 'lucide-react';
+import { formatDate, formatDateTime } from '../utils/formatters';
 
 export default function BaseGuias() {
     const [guias, setGuias] = useState([]);
@@ -18,6 +19,9 @@ export default function BaseGuias() {
         created_at_end: '',
         carteirinha_id: ''
     });
+
+    // Sorting
+    const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
 
 
     // Fetch Carteirinhas for select
@@ -64,6 +68,31 @@ export default function BaseGuias() {
             setLoading(false);
         }
     };
+
+    const handleSort = (key) => {
+        let direction = 'asc';
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
+            direction = 'desc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const sortedGuias = React.useMemo(() => {
+        if (!guias) return [];
+        let sortableItems = [...guias];
+        if (sortConfig.key) {
+            sortableItems.sort((a, b) => {
+                if (a[sortConfig.key] < b[sortConfig.key]) {
+                    return sortConfig.direction === 'asc' ? -1 : 1;
+                }
+                if (a[sortConfig.key] > b[sortConfig.key]) {
+                    return sortConfig.direction === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+        }
+        return sortableItems;
+    }, [guias, sortConfig]);
 
     const handleClearFilters = () => {
         setFilters({
@@ -172,38 +201,46 @@ export default function BaseGuias() {
 
                 {loading ? <p>Carregando...</p> : (
                     <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                             <thead>
-                                <tr>
-                                    <th>Data Import</th>
-                                    <th>Carteira / Paciente</th>
-                                    <th>Guia</th>
-                                    <th>Data Autoriz.</th>
-                                    <th>Senha</th>
-                                    <th>Validade</th>
-                                    <th>Terapia</th>
-                                    <th>Solicitado</th>
-                                    <th>Autorizado</th>
+                                <tr style={{ background: 'rgba(255,255,255,0.05)' }}>
+                                    <th onClick={() => handleSort('created_at')} style={{ cursor: 'pointer', padding: '0.8rem' }}>
+                                        Data Import {sortConfig.key === 'created_at' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                                    </th>
+                                    <th style={{ padding: '0.8rem' }}>Carteira / Paciente</th>
+                                    <th onClick={() => handleSort('guia')} style={{ cursor: 'pointer', padding: '0.8rem' }}>
+                                        Guia {sortConfig.key === 'guia' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                                    </th>
+                                    <th onClick={() => handleSort('data_autorizacao')} style={{ cursor: 'pointer', padding: '0.8rem' }}>
+                                        Data Autoriz. {sortConfig.key === 'data_autorizacao' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                                    </th>
+                                    <th style={{ padding: '0.8rem' }}>Senha</th>
+                                    <th onClick={() => handleSort('validade')} style={{ cursor: 'pointer', padding: '0.8rem' }}>
+                                        Validade {sortConfig.key === 'validade' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                                    </th>
+                                    <th style={{ padding: '0.8rem' }}>Terapia</th>
+                                    <th style={{ padding: '0.8rem' }}>Solicitado</th>
+                                    <th style={{ padding: '0.8rem' }}>Autorizado</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {guias.length > 0 ? guias.map(g => {
+                                {sortedGuias.length > 0 ? sortedGuias.map(g => {
                                     const paciente = carteirinhas.find(c => c.id === g.carteirinha_id);
                                     return (
-                                        <tr key={g.id}>
-                                            <td>{new Date(g.created_at).toLocaleDateString()}</td>
-                                            <td>{paciente ? paciente.paciente || paciente.carteirinha : g.carteirinha_id}</td>
-                                            <td>{g.guia}</td>
-                                            <td>{g.data_autorizacao}</td>
-                                            <td>{g.senha}</td>
-                                            <td>{g.validade}</td>
-                                            <td>{g.codigo_terapia}</td>
-                                            <td>{g.qtde_solicitada}</td>
-                                            <td>{g.sessoes_autorizadas}</td>
+                                        <tr key={g.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                                            <td style={{ padding: '0.8rem' }}>{formatDateTime(g.created_at)}</td>
+                                            <td style={{ padding: '0.8rem' }}>{paciente ? paciente.paciente || paciente.carteirinha : g.carteirinha_id}</td>
+                                            <td style={{ padding: '0.8rem' }}>{g.guia}</td>
+                                            <td style={{ padding: '0.8rem' }}>{formatDate(g.data_autorizacao)}</td>
+                                            <td style={{ padding: '0.8rem' }}>{g.senha}</td>
+                                            <td style={{ padding: '0.8rem' }}>{formatDate(g.validade)}</td>
+                                            <td style={{ padding: '0.8rem' }}>{g.codigo_terapia}</td>
+                                            <td style={{ padding: '0.8rem' }}>{g.qtde_solicitada}</td>
+                                            <td style={{ padding: '0.8rem' }}>{g.sessoes_autorizadas}</td>
                                         </tr>
                                     );
                                 }) : (
-                                    <tr><td colSpan="9" style={{ textAlign: 'center' }}>Nenhuma guia encontrada.</td></tr>
+                                    <tr><td colSpan="9" style={{ textAlign: 'center', padding: '1rem' }}>Nenhuma guia encontrada.</td></tr>
                                 )}
                             </tbody>
                         </table>

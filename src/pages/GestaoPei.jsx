@@ -106,6 +106,19 @@ export default function GestaoPei() {
         handleFilterChange('vencimento_filter', type);
     };
 
+    const [isExporting, setIsExporting] = useState(false);
+
+    const handleExport = async () => {
+        setIsExporting(true);
+        try {
+            await exportPei(filters);
+        } catch (e) {
+            alert("Erro ao exportar");
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     return (
         <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -220,8 +233,14 @@ export default function GestaoPei() {
                         Limpar Filtros
                     </button>
 
-                    <button className="btn-primary" onClick={() => exportPei(filters)} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '18px' }}>
-                        <Download size={18} /> Exportar Excel
+                    <button
+                        className="btn-primary"
+                        onClick={handleExport}
+                        disabled={isExporting}
+                        style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '18px', opacity: isExporting ? 0.7 : 1 }}
+                    >
+                        {isExporting ? <span className="spinner-mini"></span> : <Download size={18} />}
+                        {isExporting ? 'Exportando...' : 'Exportar Excel'}
                     </button>
                 </div>
 
@@ -234,6 +253,8 @@ export default function GestaoPei() {
                                         <th style={{ padding: '10px' }}>Paciente</th>
                                         <th style={{ padding: '10px' }}>Carteirinha</th>
                                         <th style={{ padding: '10px' }}>Código Terapia</th>
+                                        <th style={{ padding: '10px' }}>Guia Vinc.</th>
+                                        <th style={{ padding: '10px' }}>Qtd Aut.</th>
                                         <th style={{ padding: '10px' }}>PEI Semanal</th>
                                         <th style={{ padding: '10px' }}>Validade PEI</th>
                                         <th style={{ padding: '10px' }}>Status</th>
@@ -246,6 +267,8 @@ export default function GestaoPei() {
                                             <td style={{ padding: '10px' }}>{item.paciente}</td>
                                             <td style={{ padding: '10px' }}>{item.carteirinha}</td>
                                             <td style={{ padding: '10px' }}>{item.codigo_terapia}</td>
+                                            <td style={{ padding: '10px' }}>{item.guia_vinculada}</td>
+                                            <td style={{ padding: '10px' }}>{item.sessoes_autorizadas}</td>
                                             <td style={{ padding: '10px' }}>
                                                 {/* Edit Mode */}
                                                 {editingItem?.id === item.id ? (
@@ -365,6 +388,17 @@ export default function GestaoPei() {
                  }
                  .status-success { background: rgba(16, 185, 129, 0.2); color: #10b981; }
                  .status-warning { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+                 
+                 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                 .spinner-mini {
+                    width: 16px;
+                    height: 16px;
+                    border: 2px solid rgba(255,255,255,0.3);
+                    border-radius: 50%;
+                    border-top-color: white;
+                    animation: spin 1s ease-in-out infinite;
+                    display: inline-block;
+                 }
             `}</style>
         </div>
     );

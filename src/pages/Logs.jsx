@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { RefreshCcw } from 'lucide-react';
+import { formatDateTime } from '../utils/formatters';
 
 export default function Logs() {
   const [logs, setLogs] = useState([]);
@@ -55,7 +56,7 @@ export default function Logs() {
           <tbody>
             {logs.map(log => (
               <tr key={log.id}>
-                <td>{new Date(log.created_at).toLocaleString()}</td>
+                <td>{formatDateTime(log.created_at)}</td>
                 <td>
                   <span style={{
                     color: getLevelColor(log.level),

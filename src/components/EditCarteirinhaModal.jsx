@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { X, Save } from 'lucide-react';
+import { maskCarteirinha, validateCarteirinha } from '../utils/formatters';
 
 export default function EditCarteirinhaModal({ carteirinha, onClose, onSave }) {
     const [formData, setFormData] = useState({
@@ -24,16 +25,12 @@ export default function EditCarteirinhaModal({ carteirinha, onClose, onSave }) {
         }
     }, [carteirinha]);
 
-    const validateFormat = (code) => {
-        if (code.length !== 21) return false;
-        if (code[4] !== '.' || code[9] !== '.' || code[16] !== '.' || code[19] !== '-') return false;
-        return true;
-    };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!validateFormat(formData.carteirinha)) {
+        if (!validateCarteirinha(formData.carteirinha)) {
             alert("Carteirinha inválida! Deve conter 21 caracteres, ex: 0064.8000.400948.00-5");
             return;
         }
@@ -73,8 +70,9 @@ export default function EditCarteirinhaModal({ carteirinha, onClose, onSave }) {
                         <input
                             type="text"
                             value={formData.carteirinha}
-                            onChange={e => setFormData({ ...formData, carteirinha: e.target.value })}
+                            onChange={e => setFormData({ ...formData, carteirinha: maskCarteirinha(e.target.value) })}
                             required
+                            maxLength={21}
                         />
                     </div>
                     <div style={{ marginBottom: '1rem' }}>
