@@ -33,18 +33,18 @@ function Sidebar() {
         <Link to="/" className={`nav-item ${isActive('/')}`}>
           <LayoutDashboard size={20} /> Dashboard
         </Link>
-        <Link to="/guias" className={`nav-item ${isActive('/guias')}`}>
-          <Table size={20} /> Base Guias
-        </Link>
         <Link to="/jobs" className={`nav-item ${isActive('/jobs')}`}>
           {/* Using Import icon for Jobs */}
           <FileText size={20} /> Importações
         </Link>
-        <Link to="/carteirinhas" className={`nav-item ${isActive('/carteirinhas')}`}>
-          <Users size={20} /> Carteirinhas
+        <Link to="/guias" className={`nav-item ${isActive('/guias')}`}>
+          <Table size={20} /> Base Guias
         </Link>
         <Link to="/pei" className={`nav-item ${isActive('/pei')}`}>
           <Table size={20} /> Gestão PEI
+        </Link>
+        <Link to="/carteirinhas" className={`nav-item ${isActive('/carteirinhas')}`}>
+          <Users size={20} /> Carteirinhas
         </Link>
         <Link to="/logs" className={`nav-item ${isActive('/logs')}`}>
           <Activity size={20} /> Logs

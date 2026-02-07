@@ -249,42 +249,39 @@ export default function Carteirinhas() {
                     </form>
                 )}
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <div></div>
-
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
-
-                        <div className="search-box" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                            <Search size={18} style={{ position: 'absolute', left: 10, color: '#aaa' }} />
-                            <input
-                                type="text"
-                                placeholder="Busca Geral..."
-                                value={filters.search}
-                                onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(1); }}
-                                style={{ paddingLeft: '35px', width: '200px', background: '#222', border: '1px solid #444', color: 'white', padding: '8px 8px 8px 35px', borderRadius: '4px' }}
-                            />
-                        </div>
-
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div className="search-box relative">
+                        <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="Filtrar Paciente"
-                            value={filters.paciente}
-                            onChange={(e) => { setFilters({ ...filters, paciente: e.target.value }); setPage(1); }}
-                            style={{ background: '#222', border: '1px solid #444', color: 'white', padding: '8px', borderRadius: '4px' }}
+                            placeholder="Busca Geral..."
+                            value={filters.search}
+                            onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(1); }}
+                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-md py-2 pl-10 pr-4 focus:outline-none focus:border-blue-500"
                         />
+                    </div>
 
-                        <input
-                            type="text"
-                            placeholder="ID Pagamento"
-                            value={filters.id_pagamento}
-                            onChange={(e) => { setFilters({ ...filters, id_pagamento: e.target.value }); setPage(1); }}
-                            style={{ background: '#222', border: '1px solid #444', color: 'white', padding: '8px', borderRadius: '4px', width: '120px' }}
-                        />
+                    <input
+                        type="text"
+                        placeholder="Filtrar Paciente"
+                        value={filters.paciente}
+                        onChange={(e) => { setFilters({ ...filters, paciente: e.target.value }); setPage(1); }}
+                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-md py-2 px-3 focus:outline-none focus:border-blue-500"
+                    />
 
+                    <input
+                        type="text"
+                        placeholder="ID Pagamento"
+                        value={filters.id_pagamento}
+                        onChange={(e) => { setFilters({ ...filters, id_pagamento: e.target.value }); setPage(1); }}
+                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-md py-2 px-3 focus:outline-none focus:border-blue-500"
+                    />
+
+                    <div className="flex gap-2">
                         <select
                             value={filters.status}
                             onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setPage(1); }}
-                            style={{ background: '#222', border: '1px solid #444', color: 'white', padding: '8px', borderRadius: '4px' }}
+                            className="flex-1 bg-slate-800 border border-slate-700 text-white rounded-md py-2 px-3 focus:outline-none focus:border-blue-500"
                         >
                             <option value="">Status: Todos</option>
                             <option value="ativo">Ativo</option>
@@ -292,9 +289,9 @@ export default function Carteirinhas() {
                         </select>
 
                         <button
-                            className="btn"
+                            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-md transition-colors"
                             onClick={() => setFilters({ search: '', status: '', id_pagamento: '', paciente: '' })}
-                            style={{ fontSize: '0.8rem', opacity: 0.8 }}
+                            title="Limpar Filtros"
                         >
                             Limpar
                         </button>
