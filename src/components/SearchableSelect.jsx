@@ -87,7 +87,7 @@ export default function SearchableSelect({
             </div>
 
             {isOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-hidden flex flex-col">
+                <div className="absolute z-[9999] w-full mt-1 bg-slate-800 border border-slate-700 rounded-md shadow-lg max-h-60 overflow-hidden flex flex-col">
                     <div className="p-2 border-b border-slate-700">
                         <input
                             ref={inputRef}

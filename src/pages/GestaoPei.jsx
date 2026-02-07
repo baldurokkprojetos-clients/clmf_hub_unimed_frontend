@@ -89,9 +89,23 @@ export default function GestaoPei() {
         if (!editingItem) return;
         try {
             await overridePei(editingItem.base_guia_id, editValue);
+
+            // Optimistic Update
+            setData(prevData => prevData.map(item => {
+                if (item.id === editingItem.id) {
+                    return {
+                        ...item,
+                        pei_semanal: parseFloat(editValue),
+                        status: 'Validado' // Overrides are always valid
+                    };
+                }
+                return item;
+            }));
+
+            // Optional: Update stats locally if we want to be perfect, but user said "apenas grava edição".
+            // We can skip loadStats() to avoid flicker.
+
             setEditingItem(null);
-            loadData();
-            loadStats(); // refresh stats
         } catch (error) {
             alert("Erro ao salvar: " + error.message);
         }
