@@ -3,6 +3,7 @@ import api from '../services/api';
 import Pagination from '../components/Pagination';
 import { Download, Filter, X, Calendar } from 'lucide-react';
 import { formatDate, formatDateTime } from '../utils/formatters';
+import SearchableSelect from '../components/SearchableSelect';
 
 export default function BaseGuias() {
     const [guias, setGuias] = useState([]);
@@ -139,21 +140,18 @@ export default function BaseGuias() {
                 <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                     <div style={{ minWidth: '200px', flex: 1 }}>
                         <label>Paciente / Carteirinha</label>
-                        <select
-                            style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', background: '#333', color: 'white', border: '1px solid #555' }}
+                        <SearchableSelect
+                            options={[{ value: '', label: 'Todos os Pacientes' }, ...carteirinhas.map(c => ({
+                                value: c.id,
+                                label: c.paciente ? c.paciente : c.carteirinha
+                            }))]}
                             value={filters.carteirinha_id}
-                            onChange={e => {
-                                setFilters({ ...filters, carteirinha_id: e.target.value });
+                            onChange={(val) => {
+                                setFilters({ ...filters, carteirinha_id: val });
                                 setPage(1);
                             }}
-                        >
-                            <option value="">Todos os Pacientes</option>
-                            {carteirinhas.map(c => (
-                                <option key={c.id} value={c.id}>
-                                    {c.paciente ? c.paciente : c.carteirinha}
-                                </option>
-                            ))}
-                        </select>
+                            placeholder="Selecione ou Cole..."
+                        />
                     </div>
 
                     {/* Date Inputs with Calendar Icon */}

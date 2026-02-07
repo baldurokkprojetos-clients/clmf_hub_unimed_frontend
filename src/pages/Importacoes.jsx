@@ -3,6 +3,7 @@ import api from '../services/api';
 import Pagination from '../components/Pagination';
 import { Play, Filter, RefreshCcw, Trash2, Clock, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import { formatDateTime, maskCarteirinha, validateCarteirinha } from '../utils/formatters';
+import SearchableSelect from '../components/SearchableSelect';
 
 export default function Importacoes() {
   const [loading, setLoading] = useState(false);
@@ -313,18 +314,15 @@ export default function Importacoes() {
                 </div>
               ) : (
                 // Single Selection
-                <select
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#2a2a2a', color: 'white', border: '1px solid #444' }}
+                <SearchableSelect
+                  options={carteirinhas.map(c => ({
+                    value: c.id,
+                    label: c.paciente ? `${c.paciente} (${c.carteirinha})` : c.carteirinha
+                  }))}
                   value={selectedCarteirinhas[0] || ''}
-                  onChange={e => setSelectedCarteirinhas([parseInt(e.target.value)])}
-                >
-                  <option value="">Selecione o Paciente</option>
-                  {carteirinhas.map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.paciente ? `${c.paciente} (${c.carteirinha})` : c.carteirinha}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setSelectedCarteirinhas(val ? [parseInt(val)] : [])}
+                  placeholder="Selecione ou Cole o Paciente..."
+                />
               )}
             </div>
           )}
