@@ -18,4 +18,22 @@ api.interceptors.request.use(
     }
 );
 
+// Handle 401 Unauthorized (Session Expired)
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) {
+            // Clear session
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+
+            // Redirect to login if not already there
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default api;
