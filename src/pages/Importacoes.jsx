@@ -202,7 +202,7 @@ export default function Importacoes() {
       <h1 style={{ fontSize: '2rem', marginBottom: '1.5rem' }}>Importações / Jobs - {username}</h1>
 
       {/* Creation Panel */}
-      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', position: 'relative', zIndex: 20 }}>
         <h3>Nova Solicitação</h3>
         <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start', marginTop: '1rem' }}>
 
@@ -336,7 +336,7 @@ export default function Importacoes() {
       </div>
 
       {/* Jobs List */}
-      <div className="glass-panel" style={{ padding: '1.5rem' }}>
+      <div className="glass-panel" style={{ padding: '1.5rem', position: 'relative', zIndex: 10 }}>
         <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
           <div>
             <label>Status</label>
