@@ -41,30 +41,22 @@ const manualSections = [
         )
     },
     {
-        id: 'dashboard',
-        title: 'Dashboard',
-        icon: Monitor,
-        content: (
-            <div className="space-y-4">
-                <h2 className="text-2xl font-bold text-text-primary">Dashboard</h2>
-                <p className="text-text-secondary">
-                    Logo após o login, você será direcionado ao Dashboard. Esta tela oferece uma visão geral rápida do estado das integrações.
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-text-secondary ml-4">
-                    <li><strong>Status dos Robôs</strong>: Indicadores visuais mostram se os robôs de automação estão Online ou Offline.</li>
-                    <li><strong>Resumo de Guias</strong>: Contagem de guias importadas, analisadas e com pendências.</li>
-                </ul>
-            </div>
-        )
-    },
-    {
         id: 'jobs',
-        title: 'Importações (Jobs)',
+        title: 'Visão Geral / Importações',
         icon: FileText,
         content: (
             <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-text-primary">Módulo: Importações (Jobs)</h2>
-                <p className="text-text-secondary">Este módulo é o coração da automação. Aqui você solicita ao sistema que busque e atualize informações.</p>
+                <h2 className="text-2xl font-bold text-text-primary">Visão Geral e Importações</h2>
+                <p className="text-text-secondary">
+                    Ao entrar no sistema, você verá a barra de status no topo, contendo:
+                </p>
+                <div className="flex gap-2 flex-wrap mb-4">
+                    <Badge variant="info">Total Carteirinhas</Badge>
+                    <Badge variant="success">Total Guias</Badge>
+                    <Badge variant="warning">Jobs</Badge>
+                </div>
+
+                <p className="text-text-secondary">Este módulo também é o coração da automação, onde você cria as requisições.</p>
 
                 <h3 className="text-xl font-semibold text-text-primary">Criar Nova Solicitação</h3>
                 <div className="space-y-2 text-text-secondary">

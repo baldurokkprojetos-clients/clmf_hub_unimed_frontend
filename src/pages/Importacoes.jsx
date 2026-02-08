@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Pagination from '../components/Pagination';
-import { Play, Filter, RefreshCcw, Trash2, Clock, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
+import { Play, Filter, RefreshCcw, Trash2, Clock, CheckCircle, AlertCircle, XCircle, Users, Activity } from 'lucide-react';
 import { formatDateTime, maskCarteirinha, validateCarteirinha } from '../utils/formatters';
 import SearchableSelect from '../components/SearchableSelect';
 
@@ -36,13 +36,26 @@ export default function Importacoes() {
 
   useEffect(() => {
     fetchCarteirinhas();
+    fetchStats();
   }, []);
 
   useEffect(() => {
     fetchJobs();
-    const interval = setInterval(fetchJobs, 5000); // Poll for updates
+    const interval = setInterval(() => {
+      fetchJobs();
+      fetchStats();
+    }, 5000); // Poll for updates
     return () => clearInterval(interval);
   }, [page, pageSize, filters]);
+
+  const [stats, setStats] = useState(null);
+
+  const fetchStats = async () => {
+    try {
+      const res = await api.get('/dashboard/stats');
+      setStats(res.data);
+    } catch (e) { console.error("Error fetching stats", e); }
+  };
 
   const fetchCarteirinhas = async () => {
     try {
@@ -202,6 +215,47 @@ export default function Importacoes() {
         <h1 className="text-2xl font-bold text-text-primary">Importações / Jobs</h1>
         <span className="text-text-secondary text-sm">Usuário: {username}</span>
       </div>
+
+      {/* Stats Bar */}
+      {stats && (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <Card className="flex items-center gap-3 p-4">
+            <div className="bg-blue-500/10 p-2 rounded-full text-blue-500"><Users size={20} /></div>
+            <div>
+              <div className="text-xs text-text-secondary">Carteirinhas</div>
+              <div className="text-xl font-bold text-text-primary">{stats.overview.total_carteirinhas}</div>
+            </div>
+          </Card>
+          <Card className="flex items-center gap-3 p-4">
+            <div className="bg-emerald-500/10 p-2 rounded-full text-emerald-500"><CheckCircle size={20} /></div>
+            <div>
+              <div className="text-xs text-text-secondary">Guias</div>
+              <div className="text-xl font-bold text-text-primary">{stats.overview.total_guias}</div>
+            </div>
+          </Card>
+          <Card className="flex items-center gap-3 p-4">
+            <div className="bg-amber-500/10 p-2 rounded-full text-amber-500"><Activity size={20} /></div>
+            <div>
+              <div className="text-xs text-text-secondary">Jobs Total</div>
+              <div className="text-xl font-bold text-text-primary">{stats.overview.total_jobs}</div>
+            </div>
+          </Card>
+          <Card className="flex items-center gap-3 p-4">
+            <div className="bg-green-500/10 p-2 rounded-full text-green-500"><CheckCircle size={20} /></div>
+            <div>
+              <div className="text-xs text-text-secondary">Sucesso</div>
+              <div className="text-xl font-bold text-text-primary">{stats.jobs_status.success}</div>
+            </div>
+          </Card>
+          <Card className="flex items-center gap-3 p-4">
+            <div className="bg-red-500/10 p-2 rounded-full text-red-500"><XCircle size={20} /></div>
+            <div>
+              <div className="text-xs text-text-secondary">Erros</div>
+              <div className="text-xl font-bold text-text-primary">{stats.jobs_status.error}</div>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Creation Panel */}
       <Card>

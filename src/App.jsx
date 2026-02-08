@@ -5,7 +5,6 @@ import Carteirinhas from './pages/Carteirinhas';
 import Logs from './pages/Logs';
 import Login from './pages/Login';
 import BaseGuias from './pages/BaseGuias';
-import Dashboard from './pages/Dashboard';
 import GestaoPei from './pages/GestaoPei';
 import Manual from './pages/Manual';
 import MainLayout from './layouts/MainLayout';
@@ -23,7 +22,7 @@ export default function App() {
 
         <Route path="/" element={
           <PrivateRoute>
-            <Dashboard />
+            <Importacoes />
           </PrivateRoute>
         } />
 

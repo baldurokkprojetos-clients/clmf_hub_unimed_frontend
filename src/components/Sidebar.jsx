@@ -28,10 +28,7 @@ export default function Sidebar() {
             </div>
 
             <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-                <Link to="/" className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all ${isActive('/')}`}>
-                    <LayoutDashboard size={18} /> Dashboard
-                </Link>
-                <Link to="/jobs" className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all ${isActive('/jobs')}`}>
+                <Link to="/" className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all ${isActive('/') || isActive('/jobs') ? 'bg-primary/10 text-primary border-r-2 border-primary' : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50'}`}>
                     <FileText size={18} /> Importações
                 </Link>
                 <Link to="/guias" className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all ${isActive('/guias')}`}>
