@@ -1,9 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Trash2, Upload, Plus, Edit, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { Trash2, Upload, Plus, Edit, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import EditCarteirinhaModal from '../components/EditCarteirinhaModal';
 import { maskCarteirinha, validateCarteirinha } from '../utils/formatters';
+
+// Design System
+import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
+import { Input, Select } from '../components/ui/Input';
+import Badge from '../components/ui/Badge';
 
 export default function Carteirinhas() {
     const [carteirinhas, setCarteirinhas] = useState([]);
@@ -25,11 +30,7 @@ export default function Carteirinhas() {
     });
 
     const limit = 10;
-
-    // Sorting
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' });
-
-    // Edit state
     const [editingItem, setEditingItem] = useState(null);
 
     // Create state
@@ -56,8 +57,7 @@ export default function Carteirinhas() {
             };
 
             const res = await api.get('/carteirinhas/', { params });
-            // Backend now returns { data, total, skip, limit }
-            setCarteirinhas(res.data.data || res.data); // Fallback if backend not updated instantly often cache issues
+            setCarteirinhas(res.data.data || res.data);
             if (res.data.total !== undefined) {
                 setTotalItems(res.data.total);
                 setTotalPages(Math.ceil(res.data.total / limit));
@@ -66,15 +66,11 @@ export default function Carteirinhas() {
         finally { setLoading(false); }
     };
 
-    useEffect(() => {
-        fetchCarteirinhas();
-    }, [page, filters]); // Re-fetch on page or filters change
+    useEffect(() => { fetchCarteirinhas(); }, [page, filters]);
 
     const handleSort = (key) => {
         let direction = 'asc';
-        if (sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
+        if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
         setSortConfig({ key, direction });
     };
 
@@ -83,12 +79,8 @@ export default function Carteirinhas() {
         let sortableItems = [...carteirinhas];
         if (sortConfig.key) {
             sortableItems.sort((a, b) => {
-                if (a[sortConfig.key] < b[sortConfig.key]) {
-                    return sortConfig.direction === 'asc' ? -1 : 1;
-                }
-                if (a[sortConfig.key] > b[sortConfig.key]) {
-                    return sortConfig.direction === 'asc' ? 1 : -1;
-                }
+                if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1;
                 return 0;
             });
         }
@@ -110,26 +102,22 @@ export default function Carteirinhas() {
             });
             alert("Upload realizado com sucesso!");
             setFile(null);
-            setPage(1); // Reset to first page
+            setPage(1);
             fetchCarteirinhas();
-        } catch (e) {
-            alert("Erro no upload: " + e.message);
-        } finally {
-            setLoading(false);
-        }
+        } catch (e) { alert("Erro no upload: " + e.message); }
+        finally { setLoading(false); }
     };
 
     const handleDelete = async (id) => {
         if (!confirm("Excluir carteirinha?")) return;
         try {
-            await api.delete(`/ carteirinhas / ${id} `);
+            await api.delete(`/carteirinhas/${id}`);
             fetchCarteirinhas();
         } catch (e) { alert("Erro ao excluir"); }
     };
 
     const handleCreate = async (e) => {
         e.preventDefault();
-
         if (!validateCarteirinha(newCarteirinha.carteirinha)) {
             alert("Carteirinha inválida! Deve conter 21 caracteres, ex: 0000.0000.000000.00-0");
             return;
@@ -151,265 +139,212 @@ export default function Carteirinhas() {
             fetchCarteirinhas();
         } catch (e) {
             alert("Erro ao criar: " + (e.response?.data?.detail || e.message));
-        } finally {
-            setLoading(false);
-        }
+        } finally { setLoading(false); }
     };
 
     return (
-        <div>
-            <h1>Gerenciamento de Carteirinhas</h1>
+        <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-text-primary">Gerenciamento de Carteirinhas</h1>
 
-            <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
-                <h3>Upload em Lote (Excel/CSV)</h3>
-                <form onSubmit={handleUpload} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                    <input type="file" accept=".xlsx, .xls, .csv" onChange={e => setFile(e.target.files[0])} />
-                    <label style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <input type="checkbox" checked={overwrite} onChange={e => setOverwrite(e.target.checked)} style={{ width: 'auto' }} />
+            {/* Upload Section */}
+            <Card title="Upload em Lote">
+                <form onSubmit={handleUpload} className="flex flex-col md:flex-row gap-4 items-center">
+                    <div className="flex-1 w-full relative">
+                        <input
+                            type="file"
+                            accept=".xlsx, .xls, .csv"
+                            onChange={e => setFile(e.target.files[0])}
+                            className="w-full text-sm text-text-secondary
+                            file:mr-4 file:py-2 file:px-4
+                            file:rounded-full file:border-0
+                            file:text-sm file:font-semibold
+                            file:bg-primary file:text-white
+                            hover:file:bg-secondary cursor-pointer"
+                        />
+                    </div>
+                    <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
+                        <input type="checkbox" checked={overwrite} onChange={e => setOverwrite(e.target.checked)} className="rounded border-gray-600 bg-slate-800 text-primary focus:ring-primary" />
                         Sobrescrever tudo?
                     </label>
-                    <button type="submit" className="btn btn-primary" disabled={loading}>
-                        <Upload size={16} style={{ marginRight: 5 }} /> Importar
-                    </button>
+                    <Button type="submit" disabled={loading || !file} isLoading={loading} variant="primary">
+                        <Upload size={16} className="mr-2" /> Importar
+                    </Button>
                 </form>
-            </div>
+            </Card>
 
-            <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3>Carteirinhas Cadastradas ({totalItems})</h3>
-
-                    <button
-                        className="btn btn-primary"
-                        onClick={() => setShowCreateForm(!showCreateForm)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                    >
-                        <Plus size={16} />
-                        {showCreateForm ? 'Cancelar' : 'Nova Carteirinha'}
-                    </button>
+            <Card>
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-lg font-semibold text-text-primary">Carteirinhas Cadastradas ({totalItems})</h3>
+                    <Button onClick={() => setShowCreateForm(!showCreateForm)} variant="primary">
+                        {showCreateForm ? <><X size={16} className="mr-2" /> Cancelar</> : <><Plus size={16} className="mr-2" /> Nova Carteirinha</>}
+                    </Button>
                 </div>
 
                 {/* Create Form */}
                 {showCreateForm && (
-                    <form onSubmit={handleCreate} style={{ marginBottom: '1.5rem', padding: '1rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px' }}>
-                        <h4 style={{ marginBottom: '1rem' }}>Nova Carteirinha</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Carteirinha *</label>
-                                <input
-                                    type="text"
-                                    value={newCarteirinha.carteirinha}
-                                    onChange={(e) => setNewCarteirinha({ ...newCarteirinha, carteirinha: maskCarteirinha(e.target.value) })}
-                                    placeholder="0000.0000.000000.00-0"
-                                    required
-                                    maxLength={21}
-                                />
+                    <div className="bg-slate-900/50 p-6 rounded-lg border border-border mb-6">
+                        <h4 className="text-sm font-bold text-text-primary mb-4 uppercase tracking-wider">Nova Carteirinha</h4>
+                        <form onSubmit={handleCreate}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-text-secondary mb-1">Carteirinha *</label>
+                                    <Input
+                                        value={newCarteirinha.carteirinha}
+                                        onChange={(e) => setNewCarteirinha({ ...newCarteirinha, carteirinha: maskCarteirinha(e.target.value) })}
+                                        placeholder="0000.0000.000000.00-0"
+                                        required
+                                        maxLength={21}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-text-secondary mb-1">Paciente</label>
+                                    <Input
+                                        value={newCarteirinha.paciente}
+                                        onChange={(e) => setNewCarteirinha({ ...newCarteirinha, paciente: e.target.value })}
+                                        placeholder="Nome do paciente"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-text-secondary mb-1">ID Paciente</label>
+                                    <Input type="number" value={newCarteirinha.id_paciente} onChange={(e) => setNewCarteirinha({ ...newCarteirinha, id_paciente: e.target.value })} placeholder="123" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-text-secondary mb-1">ID Pagamento</label>
+                                    <Input type="number" value={newCarteirinha.id_pagamento} onChange={(e) => setNewCarteirinha({ ...newCarteirinha, id_pagamento: e.target.value })} placeholder="456" />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-text-secondary mb-1">Status</label>
+                                    <Select value={newCarteirinha.status} onChange={(e) => setNewCarteirinha({ ...newCarteirinha, status: e.target.value })}>
+                                        <option value="ativo">Ativo</option>
+                                        <option value="inativo">Inativo</option>
+                                    </Select>
+                                </div>
                             </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Paciente</label>
-                                <input
-                                    type="text"
-                                    value={newCarteirinha.paciente}
-                                    onChange={(e) => setNewCarteirinha({ ...newCarteirinha, paciente: e.target.value })}
-                                    placeholder="Nome do paciente"
-                                />
+                            <div className="flex justify-end gap-2">
+                                <Button type="button" variant="ghost" onClick={() => setShowCreateForm(false)}>Cancelar</Button>
+                                <Button type="submit" isLoading={loading}>Salvar</Button>
                             </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>ID Paciente</label>
-                                <input
-                                    type="number"
-                                    value={newCarteirinha.id_paciente}
-                                    onChange={(e) => setNewCarteirinha({ ...newCarteirinha, id_paciente: e.target.value })}
-                                    placeholder="123"
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>ID Pagamento</label>
-                                <input
-                                    type="number"
-                                    value={newCarteirinha.id_pagamento}
-                                    onChange={(e) => setNewCarteirinha({ ...newCarteirinha, id_pagamento: e.target.value })}
-                                    placeholder="456"
-                                />
-                            </div>
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Status</label>
-                                <select
-                                    value={newCarteirinha.status}
-                                    onChange={(e) => setNewCarteirinha({ ...newCarteirinha, status: e.target.value })}
-                                >
-                                    <option value="ativo">Ativo</option>
-                                    <option value="inativo">Inativo</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                            <button type="button" className="btn" onClick={() => setShowCreateForm(false)}>Cancelar</button>
-                            <button type="submit" className="btn btn-primary" disabled={loading}>Salvar</button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div className="search-box relative">
-                        <Search size={18} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                        <input
-                            type="text"
+                {/* Filters */}
+                <div className="flex flex-col md:flex-row gap-4 mb-6">
+                    <div className="flex-1 relative">
+                        <Input
                             placeholder="Busca Geral..."
                             value={filters.search}
                             onChange={(e) => { setFilters({ ...filters, search: e.target.value }); setPage(1); }}
-                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-md py-2 pl-10 pr-4 focus:outline-none focus:border-blue-500"
+                            icon={Search}
                         />
                     </div>
-
-                    <input
-                        type="text"
+                    <Input
                         placeholder="Filtrar Paciente"
                         value={filters.paciente}
                         onChange={(e) => { setFilters({ ...filters, paciente: e.target.value }); setPage(1); }}
-                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-md py-2 px-3 focus:outline-none focus:border-blue-500"
+                        className="w-full md:w-48"
                     />
-
-                    <input
-                        type="text"
+                    <Input
                         placeholder="ID Pagamento"
                         value={filters.id_pagamento}
                         onChange={(e) => { setFilters({ ...filters, id_pagamento: e.target.value }); setPage(1); }}
-                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-md py-2 px-3 focus:outline-none focus:border-blue-500"
+                        className="w-full md:w-32"
                     />
-
-                    <div className="flex gap-2">
-                        <select
-                            value={filters.status}
-                            onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setPage(1); }}
-                            className="flex-1 bg-slate-800 border border-slate-700 text-white rounded-md py-2 px-3 focus:outline-none focus:border-blue-500"
-                        >
+                    <div className="w-full md:w-40">
+                        <Select value={filters.status} onChange={(e) => { setFilters({ ...filters, status: e.target.value }); setPage(1); }}>
                             <option value="">Status: Todos</option>
                             <option value="ativo">Ativo</option>
                             <option value="inativo">Inativo</option>
-                        </select>
-
-                        <button
-                            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-md transition-colors"
-                            onClick={() => setFilters({ search: '', status: '', id_pagamento: '', paciente: '' })}
-                            title="Limpar Filtros"
-                        >
-                            Limpar
-                        </button>
+                        </Select>
                     </div>
+                    <Button
+                        variant="ghost"
+                        onClick={() => setFilters({ search: '', status: '', id_pagamento: '', paciente: '' })}
+                        className="text-text-secondary hover:text-text-primary whitespace-nowrap"
+                    >
+                        Limpar
+                    </Button>
                 </div>
 
-                <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ background: 'rgba(255,255,255,0.05)' }}>
-                                <th style={{ width: '50px', cursor: 'pointer', padding: '0.8rem' }} onClick={() => handleSort('id')}>
+                {/* Table */}
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className="bg-slate-900/50 text-text-secondary text-xs uppercase tracking-wider">
+                            <tr>
+                                <th onClick={() => handleSort('id')} className="px-6 py-3 text-left cursor-pointer hover:text-primary">
                                     ID {sortConfig.key === 'id' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                 </th>
-                                <th style={{ cursor: 'pointer', padding: '0.8rem' }} onClick={() => handleSort('carteirinha')}>
+                                <th onClick={() => handleSort('carteirinha')} className="px-6 py-3 text-left cursor-pointer hover:text-primary">
                                     Carteirinha {sortConfig.key === 'carteirinha' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                 </th>
-                                <th style={{ cursor: 'pointer', padding: '0.8rem' }} onClick={() => handleSort('paciente')}>
+                                <th onClick={() => handleSort('paciente')} className="px-6 py-3 text-left cursor-pointer hover:text-primary">
                                     Paciente {sortConfig.key === 'paciente' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                 </th>
-                                <th style={{ width: '100px', cursor: 'pointer', padding: '0.8rem' }} onClick={() => handleSort('id_paciente')}>
+                                <th onClick={() => handleSort('id_paciente')} className="px-6 py-3 text-left cursor-pointer hover:text-primary">
                                     ID Paciente {sortConfig.key === 'id_paciente' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                 </th>
-                                <th style={{ width: '120px', cursor: 'pointer', padding: '0.8rem' }} onClick={() => handleSort('id_pagamento')}>
+                                <th onClick={() => handleSort('id_pagamento')} className="px-6 py-3 text-left cursor-pointer hover:text-primary">
                                     ID Pagamento {sortConfig.key === 'id_pagamento' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                 </th>
-                                <th style={{ width: '80px', cursor: 'pointer', padding: '0.8rem' }} onClick={() => handleSort('status')}>
+                                <th onClick={() => handleSort('status')} className="px-6 py-3 text-left cursor-pointer hover:text-primary">
                                     Status {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                 </th>
-                                <th style={{ width: '100px', padding: '0.8rem' }}>Ações</th>
+                                <th className="px-6 py-3 text-left">Ações</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-border">
                             {sortedCarteirinhas.map(c => (
-                                <tr key={c.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                                    <td style={{ padding: '0.8rem' }}>{c.id}</td>
-                                    <td style={{ padding: '0.8rem' }}>{c.carteirinha}</td>
-                                    <td style={{ padding: '0.8rem' }}>{c.paciente}</td>
-                                    <td style={{ padding: '0.8rem' }}>{c.id_paciente || '-'}</td>
-                                    <td style={{ padding: '0.8rem' }}>{c.id_pagamento || '-'}</td>
-                                    <td style={{ padding: '0.8rem' }}>
-                                        <span style={{
-                                            padding: '0.25rem 0.5rem',
-                                            borderRadius: '4px',
-                                            fontSize: '0.85rem',
-                                            background: c.status === 'ativo' ? '#10b981' : '#6b7280',
-                                            color: 'white'
-                                        }}>
-                                            {c.status || 'ativo'}
-                                        </span>
+                                <tr key={c.id} className="hover:bg-slate-800/30 transition-colors">
+                                    <td className="px-6 py-4 text-sm text-text-secondary font-mono">{c.id}</td>
+                                    <td className="px-6 py-4 text-sm text-text-secondary font-mono">{c.carteirinha}</td>
+                                    <td className="px-6 py-4 text-sm text-text-primary font-medium">{c.paciente || '-'}</td>
+                                    <td className="px-6 py-4 text-sm text-text-secondary">{c.id_paciente || '-'}</td>
+                                    <td className="px-6 py-4 text-sm text-text-secondary">{c.id_pagamento || '-'}</td>
+                                    <td className="px-6 py-4 text-sm">
+                                        <Badge variant={c.status === 'ativo' ? 'success' : 'default'}>{c.status || 'ativo'}</Badge>
                                     </td>
-                                    <td style={{ display: 'flex', gap: '0.5rem', padding: '0.8rem' }}>
-                                        <button className="btn-icon" onClick={() => setEditingItem(c)} title="Editar">
-                                            <Edit size={16} color="#3b82f6" />
-                                        </button>
-                                        <button className="btn-icon" onClick={() => handleDelete(c.id)} title="Excluir">
-                                            <Trash2 size={16} color="#ef4444" />
-                                        </button>
+                                    <td className="px-6 py-4 text-sm flex gap-2">
+                                        <Button size="sm" variant="ghost" onClick={() => setEditingItem(c)} className="h-8 w-8 p-0">
+                                            <Edit size={16} className="text-primary" />
+                                        </Button>
+                                        <Button size="sm" variant="ghost" onClick={() => handleDelete(c.id)} className="h-8 w-8 p-0">
+                                            <Trash2 size={16} className="text-red-500" />
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
                             {sortedCarteirinhas.length === 0 && (
-                                <tr><td colSpan="7" style={{ textAlign: 'center', padding: '1rem' }}>Nenhum registro encontrado</td></tr>
+                                <tr><td colSpan="7" className="px-6 py-10 text-center text-text-secondary">Nenhum registro encontrado</td></tr>
                             )}
                         </tbody>
                     </table>
                 </div>
 
-                {/* Pagination Controls */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
-                    <span>Página {page} de {totalPages || 1}</span>
-                    <div style={{ display: 'flex', gap: '0.2rem' }}>
-                        <button
-                            className="btn"
+                {/* Pagination */}
+                <div className="flex justify-between items-center mt-6 pt-4 border-t border-border">
+                    <span className="text-sm text-text-secondary">
+                        Página {page} de {totalPages || 1}
+                    </span>
+                    <div className="flex gap-2">
+                        <Button
+                            variant="secondary"
                             disabled={page <= 1}
                             onClick={() => setPage(p => Math.max(1, p - 1))}
-                            style={{ padding: '0.5rem' }}
+                            className="h-8 w-8 p-0 flex items-center justify-center"
                         >
                             <ChevronLeft size={16} />
-                        </button>
-                        <button
-                            className="btn"
+                        </Button>
+                        <Button
+                            variant="secondary"
                             disabled={page >= totalPages}
                             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                            style={{ padding: '0.5rem' }}
+                            className="h-8 w-8 p-0 flex items-center justify-center"
                         >
                             <ChevronRight size={16} />
-                        </button>
+                        </Button>
                     </div>
                 </div>
-            </div>
-
-            {/* Loading Overlay */}
-            {loading && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    zIndex: 9999
-                }}>
-                    <div className="spinner" style={{
-                        width: '50px',
-                        height: '50px',
-                        border: '5px solid #3b82f6',
-                        borderTop: '5px solid transparent',
-                        borderRadius: '50%',
-                        animation: 'spin 1s linear infinite'
-                    }}></div>
-                    <h3 style={{ color: 'white', marginTop: '1rem' }}>Processando...</h3>
-                    <p style={{ color: '#ccc' }}>Por favor, aguarde.</p>
-                </div>
-            )}
+            </Card>
 
             {/* Edit Modal */}
             {editingItem && (
@@ -419,12 +354,6 @@ export default function Carteirinhas() {
                     onSave={fetchCarteirinhas}
                 />
             )}
-            <style>{`
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-            `}</style>
         </div>
     );
 }
