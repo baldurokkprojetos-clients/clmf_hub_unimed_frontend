@@ -31,8 +31,8 @@ const manualSections = [
                 <p className="text-text-secondary">Para acessar o sistema, você deve possuir um usuário e senha cadastrados.</p>
                 <ol className="list-decimal list-inside space-y-2 text-text-secondary ml-4">
                     <li>Acesse a URL do sistema no seu navegador.</li>
-                    <li>Na tela de login, insira seu <strong>Usuário</strong> e <strong>Senha</strong>.</li>
-                    <li>Clique no botão <strong>Entrar</strong>.</li>
+                    <li>Na tela de login, insira sua <strong>Chave de Acesso</strong> (fornecida pelo administrador).</li>
+                    <li>Clique no botão <strong>Acessar Sistema</strong>.</li>
                 </ol>
                 <div className="bg-amber-500/10 border-l-4 border-amber-500 p-4 rounded text-amber-500">
                     Se a sua sessão expirar por inatividade, você será redirecionado automaticamente para a tela de login.
@@ -178,8 +178,8 @@ export default function Manual() {
                                 key={section.id}
                                 onClick={() => setActiveSection(section.id)}
                                 className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${activeSection === section.id
-                                        ? 'bg-primary/10 text-primary'
-                                        : 'text-text-secondary hover:bg-slate-800 hover:text-text-primary'
+                                    ? 'bg-primary/10 text-primary'
+                                    : 'text-text-secondary hover:bg-slate-800 hover:text-text-primary'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
