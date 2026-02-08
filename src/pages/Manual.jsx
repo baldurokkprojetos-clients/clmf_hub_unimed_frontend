@@ -132,15 +132,29 @@ const manualSections = [
         title: 'Carteirinhas',
         icon: Users,
         content: (
-            <div className="space-y-4">
+            <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-text-primary">Módulo: Carteirinhas</h2>
-                <p className="text-text-secondary">Gerenciamento da base de dados de pacientes.</p>
+                <p className="text-text-secondary">Gerenciamento completo da base de dados de pacientes.</p>
 
-                <h3 className="text-lg font-semibold text-text-primary">Importação em Lote (Upload)</h3>
-                <p className="text-text-secondary">Para alimentar o sistema com novos pacientes:</p>
-                <ol className="list-decimal list-inside space-y-2 text-text-secondary ml-4">
-                    <li>Clique no botão <strong>Upload Carteirinhas</strong> para abrir o painel.</li>
-                    <li>Selecione o arquivo <code>.csv</code> ou <code>.xlsx</code>.</li>
+                <h3 className="text-lg font-semibold text-text-primary">Cadastro Manual</h3>
+                <p className="text-text-secondary">Para adicionar um único paciente:</p>
+                <ol className="list-decimal list-inside space-y-1 text-text-secondary ml-4">
+                    <li>Clique no botão <strong>+ Nova Carteirinha</strong>.</li>
+                    <li>Preencha o formulário (Carteirinha, Nome, IDs).</li>
+                    <li>Clique em <strong>Salvar</strong>.</li>
+                </ol>
+
+                <h3 className="text-lg font-semibold text-text-primary">Edição e Exclusão</h3>
+                <p className="text-text-secondary">Na tabela de listagem:</p>
+                <ul className="list-disc list-inside space-y-1 text-text-secondary ml-4">
+                    <li>Use o ícone <strong>Lápis</strong> para editar dados cadastrais.</li>
+                    <li>Use o ícone <strong>Lixeira</strong> para remover um paciente.</li>
+                </ul>
+
+                <h3 className="text-lg font-semibold text-text-primary">Importação em Lote</h3>
+                <ol className="list-decimal list-inside space-y-1 text-text-secondary ml-4">
+                    <li>Clique no botão <strong>Upload Carteirinhas</strong>.</li>
+                    <li>Selecione o arquivo Excel/CSV.</li>
                     <li>Clique em <strong>Importar</strong>.</li>
                 </ol>
             </div>
