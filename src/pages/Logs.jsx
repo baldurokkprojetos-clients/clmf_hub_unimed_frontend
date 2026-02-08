@@ -3,6 +3,9 @@ import api from '../services/api';
 import { RefreshCcw } from 'lucide-react';
 import { formatDateTime } from '../utils/formatters';
 import Pagination from '../components/Pagination';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
 
 export default function Logs() {
   const [logs, setLogs] = useState([]);
@@ -17,104 +20,87 @@ export default function Logs() {
     setLoading(true);
     try {
       const skip = (page - 1) * pageSize;
-      const res = await api.get('/api/logs/', {
-        params: {
-          skip,
-          limit: pageSize
-        }
-      });
-      // Handle response structure change
+      const res = await api.get('/api/logs/', { params: { skip, limit: pageSize } });
       if (res.data.data) {
         setLogs(res.data.data);
         setTotalItems(res.data.total);
       } else {
-        setLogs(res.data); // Fallback
+        setLogs(res.data);
       }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
   };
 
   useEffect(() => {
     fetchLogs();
-    const interval = setInterval(fetchLogs, 5000); // Polling for live updates
+    const interval = setInterval(fetchLogs, 5000);
     return () => clearInterval(interval);
-  }, [page, pageSize]); // Re-fetch when page changes
+  }, [page, pageSize]);
 
-  const getLevelColor = (level) => {
+  const getBadgeVariant = (level) => {
     switch (level) {
-      case 'INFO': return '#3b82f6';
-      case 'WARN': return '#f59e0b';
-      case 'ERROR': return '#ef4444';
-      default: return '#94a3b8';
+      case 'INFO': return 'primary';
+      case 'WARN': return 'warning';
+      case 'ERROR': return 'danger';
+      default: return 'default';
     }
   };
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '2rem' }}>Logs do Sistema</h1>
-        <button className="btn" onClick={fetchLogs} disabled={loading}>
-          <RefreshCcw size={16} className={loading ? 'spin' : ''} /> Atualizar
-        </button>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-text-primary">Logs do Sistema</h1>
+        <Button onClick={fetchLogs} disabled={loading} variant="secondary">
+          <RefreshCcw size={16} className={`mr-2 ${loading ? 'animate-spin' : ''}`} /> Atualizar
+        </Button>
       </div>
 
-      <div className="glass-panel" style={{ padding: '1.5rem' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: 'rgba(255,255,255,0.05)' }}>
-                <th style={{ width: '180px', padding: '0.8rem', textAlign: 'left' }}>Data</th>
-                <th style={{ width: '80px', padding: '0.8rem', textAlign: 'left' }}>Nível</th>
-                <th style={{ width: '250px', padding: '0.8rem', textAlign: 'left' }}>Contexto</th>
-                <th style={{ padding: '0.8rem', textAlign: 'left' }}>Mensagem</th>
+      <Card noPadding>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-900/50 text-text-secondary text-xs uppercase tracking-wider">
+              <tr>
+                <th className="px-6 py-3 text-left w-48">Data</th>
+                <th className="px-6 py-3 text-left w-24">Nível</th>
+                <th className="px-6 py-3 text-left w-64">Contexto</th>
+                <th className="px-6 py-3 text-left">Mensagem</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border">
               {logs.map(log => (
-                <tr key={log.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                  <td style={{ padding: '0.8rem' }}>{formatDateTime(log.created_at)}</td>
-                  <td style={{ padding: '0.8rem' }}>
-                    <span style={{
-                      color: getLevelColor(log.level),
-                      fontWeight: 'bold',
-                      fontSize: '0.9rem'
-                    }}>
-                      {log.level}
-                    </span>
+                <tr key={log.id} className="hover:bg-slate-800/30 transition-colors">
+                  <td className="px-6 py-4 text-sm text-text-secondary font-mono">{formatDateTime(log.created_at)}</td>
+                  <td className="px-6 py-4 text-sm">
+                    <Badge variant={getBadgeVariant(log.level)}>{log.level}</Badge>
                   </td>
-                  <td style={{ padding: '0.8rem' }}>
-                    {log.paciente && <div style={{ fontWeight: '500', color: '#fff' }}>{log.paciente}</div>}
-                    {log.carteirinha && <div style={{ fontSize: '0.8rem', color: '#aaa' }}>{log.carteirinha}</div>}
-                    {log.job_id && <div style={{ fontSize: '0.75rem', color: '#666' }}>Job #{log.job_id}</div>}
-                    {!log.carteirinha && !log.job_id && <span style={{ color: '#666' }}>-</span>}
+                  <td className="px-6 py-4 text-sm">
+                    {log.paciente && <div className="font-medium text-text-primary">{log.paciente}</div>}
+                    {log.carteirinha && <div className="text-xs text-text-secondary">{log.carteirinha}</div>}
+                    {log.job_id && <div className="text-xs text-text-secondary">Job #{log.job_id}</div>}
+                    {!log.paciente && !log.carteirinha && !log.job_id && <span className="text-text-secondary">-</span>}
                   </td>
-                  <td style={{ padding: '0.8rem', fontFamily: 'monospace', fontSize: '0.9rem', color: '#ddd', whiteSpace: 'pre-wrap' }}>
+                  <td className="px-6 py-4 text-sm text-text-secondary font-mono whitespace-pre-wrap">
                     {log.message}
                   </td>
                 </tr>
               ))}
-              {logs.length === 0 && (
-                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>Nenhum log registrado.</td></tr>
+              {logs.length === 0 && !loading && (
+                <tr><td colSpan="4" className="px-6 py-10 text-center text-text-secondary">Nenhum log registrado.</td></tr>
               )}
             </tbody>
           </table>
         </div>
 
-        <Pagination
-          currentPage={page}
-          totalItems={totalItems}
-          pageSize={pageSize}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-        />
-      </div>
-      <style>{`
-        .spin { animation: spin 1s linear infinite; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-      `}</style>
+        <div className="p-4 border-t border-border">
+          <Pagination
+            currentPage={page}
+            totalItems={totalItems}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        </div>
+      </Card>
     </div>
   );
 }
