@@ -342,7 +342,7 @@ export default function Importacoes() {
             <label>Status</label>
             <select
               value={filters.status}
-              onChange={e => setFilters({ ...filters, status: e.target.value })}
+              onChange={e => { setFilters({ ...filters, status: e.target.value }); setPage(1); }}
               style={{ padding: '0.4rem', borderRadius: '4px', background: '#333', color: 'white' }}
             >
               <option value="">Todos</option>
@@ -354,11 +354,11 @@ export default function Importacoes() {
           </div>
           <div>
             <label>Data Início</label>
-            <input type="date" value={filters.created_at_start} onChange={e => setFilters({ ...filters, created_at_start: e.target.value })} />
+            <input type="date" value={filters.created_at_start} onChange={e => { setFilters({ ...filters, created_at_start: e.target.value }); setPage(1); }} />
           </div>
           <div>
             <label>Data Fim</label>
-            <input type="date" value={filters.created_at_end} onChange={e => setFilters({ ...filters, created_at_end: e.target.value })} />
+            <input type="date" value={filters.created_at_end} onChange={e => { setFilters({ ...filters, created_at_end: e.target.value }); setPage(1); }} />
           </div>
         </div>
 
