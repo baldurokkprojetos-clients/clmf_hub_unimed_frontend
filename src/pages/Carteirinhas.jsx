@@ -383,6 +383,34 @@ export default function Carteirinhas() {
                 </div>
             </div>
 
+            {/* Loading Overlay */}
+            {loading && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 9999
+                }}>
+                    <div className="spinner" style={{
+                        width: '50px',
+                        height: '50px',
+                        border: '5px solid #3b82f6',
+                        borderTop: '5px solid transparent',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite'
+                    }}></div>
+                    <h3 style={{ color: 'white', marginTop: '1rem' }}>Processando...</h3>
+                    <p style={{ color: '#ccc' }}>Por favor, aguarde.</p>
+                </div>
+            )}
+
             {/* Edit Modal */}
             {editingItem && (
                 <EditCarteirinhaModal
@@ -391,6 +419,12 @@ export default function Carteirinhas() {
                     onSave={fetchCarteirinhas}
                 />
             )}
+            <style>{`
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `}</style>
         </div>
     );
 }
