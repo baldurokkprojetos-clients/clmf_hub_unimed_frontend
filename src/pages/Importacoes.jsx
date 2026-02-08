@@ -5,6 +5,12 @@ import { Play, Filter, RefreshCcw, Trash2, Clock, CheckCircle, AlertCircle, XCir
 import { formatDateTime, maskCarteirinha, validateCarteirinha } from '../utils/formatters';
 import SearchableSelect from '../components/SearchableSelect';
 
+// Design System
+import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
+import { Input, Select } from '../components/ui/Input';
+import Badge from '../components/ui/Badge';
+
 export default function Importacoes() {
   const [loading, setLoading] = useState(false);
   const username = localStorage.getItem('username') || 'Usuário';
@@ -46,28 +52,23 @@ export default function Importacoes() {
   };
 
   const fetchJobs = async () => {
-    // Don't set loading true on polling to avoid flickering, only first load?
-    // For now, simple.
     try {
       const params = {
         limit: pageSize,
         skip: (page - 1) * pageSize,
       };
 
-      // Clean filters to prevent 422
       if (filters.status) params.status = filters.status;
       if (filters.created_at_start) params.created_at_start = filters.created_at_start;
       if (filters.created_at_end) params.created_at_end = filters.created_at_end;
 
-      const res = await api.get('/jobs/', { params }); // Added trailing slash
+      const res = await api.get('/jobs/', { params });
 
       if (res.data.data) {
         setJobs(res.data.data);
         setTotalJobs(res.data.total);
       } else {
         setJobs(res.data);
-        // If total not returned, assume length (rare legacy)
-        // setTotalJobs(res.data.length);
       }
     } catch (e) { console.error("Error fetching jobs", e); }
   };
@@ -143,7 +144,6 @@ export default function Importacoes() {
       setSelectedCarteirinhas([]);
       fetchJobs();
 
-      // Clear inputs if temp
       if (importType === 'temp') {
         document.getElementById('temp-carteirinha').value = '';
         document.getElementById('temp-paciente').value = '';
@@ -173,13 +173,13 @@ export default function Importacoes() {
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusBadge = (status) => {
     switch (status) {
-      case 'success': return <CheckCircle size={18} color="#10b981" />;
-      case 'error': return <AlertCircle size={18} color="#ef4444" />;
-      case 'pending': return <Clock size={18} color="#f59e0b" />;
-      case 'processing': return <RefreshCcw size={18} className="spin" color="#3b82f6" />;
-      default: return null;
+      case 'success': return <Badge variant="success">Sucesso</Badge>;
+      case 'error': return <Badge variant="error">Erro</Badge>;
+      case 'pending': return <Badge variant="warning">Pendente</Badge>;
+      case 'processing': return <Badge variant="info">Processando</Badge>;
+      default: return <Badge>{status}</Badge>;
     }
   };
 
@@ -192,24 +192,26 @@ export default function Importacoes() {
     return `${minutes}m ${seconds % 60}s`;
   };
 
-  // Handler for masking input
   const handleTempCarteirinhaChange = (e) => {
     e.target.value = maskCarteirinha(e.target.value);
   };
 
   return (
-    <div>
-      <h1 style={{ fontSize: '2rem', marginBottom: '1.5rem' }}>Importações / Jobs - {username}</h1>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center border-b border-border pb-4">
+        <h1 className="text-2xl font-bold text-text-primary">Importações / Jobs</h1>
+        <span className="text-text-secondary text-sm">Usuário: {username}</span>
+      </div>
 
       {/* Creation Panel */}
-      <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', position: 'relative', zIndex: 20 }}>
-        <h3>Nova Solicitação</h3>
-        <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', alignItems: 'flex-start', marginTop: '1rem' }}>
+      <Card>
+        <h3 className="text-lg font-semibold text-text-primary mb-4 border-b border-border pb-2">Nova Solicitação</h3>
 
-          <div style={{ minWidth: '200px' }}>
-            <label>Tipo de Importação</label>
-            <select
-              style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#2a2a2a', color: 'white', border: '1px solid #444' }}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+
+          <div className="md:col-span-3">
+            <label className="block text-sm font-medium text-text-secondary mb-1">Tipo de Importação</label>
+            <Select
               value={importType}
               onChange={e => { setImportType(e.target.value); setSelectedCarteirinhas([]); }}
             >
@@ -217,214 +219,207 @@ export default function Importacoes() {
               <option value="multiple">Múltipla</option>
               <option value="all">Todos</option>
               <option value="temp">Paciente Temporário</option>
-            </select>
+            </Select>
           </div>
 
-          {importType === 'temp' && (
-            <div style={{ flex: 1, minWidth: '300px', display: 'flex', gap: '1rem' }}>
-              <div style={{ flex: 1 }}>
-                <label>Carteirinha (Temp)</label>
-                <input
+          {importType === 'temp' ? (
+            <>
+              <div className="md:col-span-3">
+                <label className="block text-sm font-medium text-text-secondary mb-1">Carteirinha (Temp)</label>
+                <Input
                   type="text"
                   placeholder="Ex: 0000.0000.000000.00-0"
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#333', color: 'white', border: '1px solid #444' }}
                   id="temp-carteirinha"
                   maxLength={21}
                   onChange={handleTempCarteirinhaChange}
                 />
               </div>
-              <div style={{ flex: 1 }}>
-                <label>Nome do Paciente</label>
-                <input
+              <div className="md:col-span-4">
+                <label className="block text-sm font-medium text-text-secondary mb-1">Nome do Paciente</label>
+                <Input
                   type="text"
                   placeholder="Nome Completo"
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '6px', background: '#333', color: 'white', border: '1px solid #444' }}
                   id="temp-paciente"
                 />
               </div>
-            </div>
-          )}
+            </>
+          ) : (
+            importType !== 'all' && (
+              <div className="md:col-span-7">
+                <label className="block text-sm font-medium text-text-secondary mb-1">Selecione os Pacientes</label>
 
-          {importType !== 'all' && importType !== 'temp' && (
-            <div style={{ flex: 1, minWidth: '300px' }}>
-              <label>Selecione os Pacientes</label>
-
-              {/* Custom Search + Add Component */}
-              {importType === 'multiple' ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <input
-                      list="patients-list"
-                      placeholder="Pesquisar paciente... (Enter p/ incluir)"
-                      style={{ flex: 1, padding: '0.6rem', borderRadius: '4px', border: '1px solid #444', background: '#333', color: 'white' }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          const val = e.target.value;
+                {importType === 'multiple' ? (
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <Input
+                        id="patient-search-input"
+                        list="patients-list"
+                        placeholder="Pesquisar paciente... (Enter p/ incluir)"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const val = e.target.value;
+                            const item = carteirinhas.find(c => (c.paciente ? `${c.paciente} (${c.carteirinha})` : c.carteirinha) === val);
+                            if (item) {
+                              if (!selectedCarteirinhas.includes(item.id)) {
+                                setSelectedCarteirinhas([...selectedCarteirinhas, item.id]);
+                              }
+                              e.target.value = '';
+                            }
+                          }
+                        }}
+                      />
+                      <datalist id="patients-list">
+                        {carteirinhas.map(c => (
+                          <option key={c.id} value={c.paciente ? `${c.paciente} (${c.carteirinha})` : c.carteirinha} />
+                        ))}
+                      </datalist>
+                      <Button
+                        onClick={() => {
+                          const input = document.getElementById('patient-search-input');
+                          const val = input.value;
                           const item = carteirinhas.find(c => (c.paciente ? `${c.paciente} (${c.carteirinha})` : c.carteirinha) === val);
                           if (item) {
                             if (!selectedCarteirinhas.includes(item.id)) {
                               setSelectedCarteirinhas([...selectedCarteirinhas, item.id]);
                             }
-                            e.target.value = '';
+                            input.value = '';
+                          } else {
+                            alert("Selecione um paciente válido da lista.");
                           }
-                        }
-                      }}
-                      id="patient-search-input"
-                    />
-                    <datalist id="patients-list">
-                      {carteirinhas.map(c => (
-                        <option key={c.id} value={c.paciente ? `${c.paciente} (${c.carteirinha})` : c.carteirinha} />
-                      ))}
-                    </datalist>
-                    <button className="btn" onClick={() => {
-                      const input = document.getElementById('patient-search-input');
-                      const val = input.value;
-                      const item = carteirinhas.find(c => (c.paciente ? `${c.paciente} (${c.carteirinha})` : c.carteirinha) === val);
-                      if (item) {
-                        if (!selectedCarteirinhas.includes(item.id)) {
-                          setSelectedCarteirinhas([...selectedCarteirinhas, item.id]);
-                        }
-                        input.value = '';
-                      } else {
-                        alert("Selecione um paciente válido da lista.");
-                      }
-                    }} style={{ background: '#3b82f6' }}>
-                      +
-                    </button>
-                  </div>
+                        }}
+                      >
+                        +
+                      </Button>
+                    </div>
 
-                  {/* Selected List */}
-                  <div style={{ maxHeight: '150px', overflowY: 'auto', background: '#222', borderRadius: '4px', padding: '0.5rem' }}>
-                    {selectedCarteirinhas.length === 0 && <span style={{ color: '#666', fontSize: '0.9rem' }}>Nenhum paciente selecionado</span>}
-                    {selectedCarteirinhas.map(id => {
-                      const c = carteirinhas.find(x => x.id === id);
-                      return (
-                        <div key={id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#333', padding: '0.3rem 0.6rem', marginBottom: '0.3rem', borderRadius: '4px' }}>
-                          <span style={{ fontSize: '0.9rem' }}>{c ? (c.paciente || c.carteirinha) : id}</span>
-                          <button
-                            onClick={() => setSelectedCarteirinhas(selectedCarteirinhas.filter(x => x !== id))}
-                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontWeight: 'bold' }}
-                          >
-                            x
-                          </button>
-                        </div>
-                      );
-                    })}
+                    {/* Selected List Badge Area */}
+                    <div className="bg-slate-900/50 p-2 rounded-lg min-h-[50px] max-h-[150px] overflow-y-auto flex flex-wrap gap-2">
+                      {selectedCarteirinhas.length === 0 && <span className="text-text-secondary text-xs italic">Nenhum paciente selecionado</span>}
+                      {selectedCarteirinhas.map(id => {
+                        const c = carteirinhas.find(x => x.id === id);
+                        return (
+                          <div key={id} className="inline-flex items-center gap-1 bg-surface border border-border px-2 py-1 rounded text-xs text-text-primary">
+                            <span>{c ? (c.paciente || c.carteirinha) : id}</span>
+                            <button
+                              onClick={() => setSelectedCarteirinhas(selectedCarteirinhas.filter(x => x !== id))}
+                              className="text-error hover:text-red-300 font-bold ml-1"
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
-                </div>
-              ) : (
-                // Single Selection
-                <SearchableSelect
-                  options={carteirinhas.map(c => ({
-                    value: c.id,
-                    label: c.paciente ? `${c.paciente} (${c.carteirinha})` : c.carteirinha
-                  }))}
-                  value={selectedCarteirinhas[0] || ''}
-                  onChange={(val) => setSelectedCarteirinhas(val ? [parseInt(val)] : [])}
-                  placeholder="Selecione ou Cole o Paciente..."
-                />
-              )}
-            </div>
+                ) : (
+                  <SearchableSelect
+                    options={carteirinhas.map(c => ({
+                      value: c.id,
+                      label: c.paciente ? `${c.paciente} (${c.carteirinha})` : c.carteirinha
+                    }))}
+                    value={selectedCarteirinhas[0] || ''}
+                    onChange={(val) => setSelectedCarteirinhas(val ? [parseInt(val)] : [])}
+                    placeholder="Selecione ou Cole o Paciente..."
+                  />
+                )}
+              </div>
+            )
           )}
 
-          <div style={{ alignSelf: 'center' }}>
-            <button className="btn btn-primary" onClick={handleCreateJob} style={{ height: '42px' }}>
-              <Play size={16} style={{ display: 'inline', marginRight: 5 }} /> Criar Solicitação
-            </button>
+          <div className="md:col-span-2">
+            <Button onClick={handleCreateJob} className="w-full h-[42px]">
+              <Play size={16} /> Criar
+            </Button>
           </div>
+
         </div>
-      </div>
+      </Card>
 
       {/* Jobs List */}
-      <div className="glass-panel" style={{ padding: '1.5rem', position: 'relative', zIndex: 10 }}>
-        <div style={{ marginBottom: '1rem', display: 'flex', gap: '1rem', alignItems: 'flex-end' }}>
-          <div>
-            <label>Status</label>
-            <select
+      <Card noPadding>
+        {/* Filters Toolbar */}
+        <div className="p-4 border-b border-border flex flex-wrap gap-4 items-end bg-surface/30">
+          <div className="w-40">
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Status</label>
+            <Select
               value={filters.status}
               onChange={e => { setFilters({ ...filters, status: e.target.value }); setPage(1); }}
-              style={{ padding: '0.4rem', borderRadius: '4px', background: '#333', color: 'white' }}
+              className="py-1.5 text-sm"
             >
               <option value="">Todos</option>
               <option value="success">Sucesso</option>
               <option value="error">Erro</option>
               <option value="pending">Pendente</option>
               <option value="processing">Processando</option>
-            </select>
+            </Select>
           </div>
-          <div>
-            <label>Data Início</label>
-            <input type="date" value={filters.created_at_start} onChange={e => { setFilters({ ...filters, created_at_start: e.target.value }); setPage(1); }} />
+          <div className="w-40">
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Início</label>
+            <Input type="date" value={filters.created_at_start} onChange={e => { setFilters({ ...filters, created_at_start: e.target.value }); setPage(1); }} className="py-1.5 text-sm" />
           </div>
-          <div>
-            <label>Data Fim</label>
-            <input type="date" value={filters.created_at_end} onChange={e => { setFilters({ ...filters, created_at_end: e.target.value }); setPage(1); }} />
+          <div className="w-40">
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Fim</label>
+            <Input type="date" value={filters.created_at_end} onChange={e => { setFilters({ ...filters, created_at_end: e.target.value }); setPage(1); }} className="py-1.5 text-sm" />
           </div>
         </div>
 
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{ background: 'rgba(255,255,255,0.05)' }}>
-                <th onClick={() => handleSort('id')} style={{ cursor: 'pointer' }}>
-                  ID {sortConfig.key === 'id' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
-                </th>
-                <th onClick={() => handleSort('created_at')} style={{ cursor: 'pointer' }}>
-                  Data Criação {sortConfig.key === 'created_at' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
-                </th>
-                <th onClick={() => handleSort('status')} style={{ cursor: 'pointer' }}>
-                  Status {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
-                </th>
-                <th onClick={() => handleSort('attempts')} style={{ cursor: 'pointer' }}>
-                  Tentativas {sortConfig.key === 'attempts' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
-                </th>
-                <th>Tempo Proc.</th>
-                <th>Ações</th>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-slate-900/50 text-text-secondary text-xs uppercase tracking-wider">
+              <tr>
+                <th className="px-6 py-3 text-left cursor-pointer hover:text-primary" onClick={() => handleSort('id')}>ID</th>
+                <th className="px-6 py-3 text-left cursor-pointer hover:text-primary" onClick={() => handleSort('created_at')}>Data Criação</th>
+                <th className="px-6 py-3 text-left cursor-pointer hover:text-primary" onClick={() => handleSort('status')}>Status</th>
+                <th className="px-6 py-3 text-left cursor-pointer hover:text-primary" onClick={() => handleSort('attempts')}>Tentativas</th>
+                <th className="px-6 py-3 text-left">Tempo Proc.</th>
+                <th className="px-6 py-3 text-left">Ações</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-border">
               {sortedJobs.map(job => (
-                <tr key={job.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                  <td style={{ padding: '0.8rem' }}>{job.id}</td>
-                  <td style={{ padding: '0.8rem' }}>{formatDateTime(job.created_at)}</td>
-                  <td style={{ padding: '0.8rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                      {getStatusIcon(job.status)} {job.status}
-                    </div>
+                <tr key={job.id} className="hover:bg-slate-800/30 transition-colors">
+                  <td className="px-6 py-4 text-sm text-text-primary">#{job.id}</td>
+                  <td className="px-6 py-4 text-sm text-text-secondary">{formatDateTime(job.created_at)}</td>
+                  <td className="px-6 py-4 text-sm">
+                    {getStatusBadge(job.status)}
                   </td>
-                  <td style={{ padding: '0.8rem' }}>{job.attempts}</td>
-                  <td style={{ padding: '0.8rem' }}>{calculateDuration(job.created_at, job.updated_at)}</td>
-                  <td style={{ padding: '0.8rem' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      {(job.status === 'error' && job.attempts > 3) ? (
-                        <>
-                          <button className="btn" style={{ padding: '0.3rem', background: '#f59e0b' }} onClick={() => handleRetryJob(job.id)} title="Reenviar">
-                            <RefreshCcw size={14} />
-                          </button>
-                          <button className="btn" style={{ padding: '0.3rem', background: '#ef4444' }} onClick={() => handleDeleteJob(job.id)} title="Excluir">
-                            <Trash2 size={14} />
-                          </button>
-                        </>
-                      ) : (
-                        <span style={{ fontSize: '0.8rem', color: '#666' }}>-</span>
-                      )}
-                    </div>
+                  <td className="px-6 py-4 text-sm text-text-secondary">{job.attempts}</td>
+                  <td className="px-6 py-4 text-sm text-text-secondary font-mono">{calculateDuration(job.created_at, job.updated_at)}</td>
+                  <td className="px-6 py-4 text-sm">
+                    {(job.status === 'error' && job.attempts > 3) && (
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="ghost" onClick={() => handleRetryJob(job.id)} title="Reenviar" className="text-amber-500 hover:text-amber-400 hover:bg-amber-500/10">
+                          <RefreshCcw size={16} />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleDeleteJob(job.id)} title="Excluir" className="text-red-500 hover:text-red-400 hover:bg-red-500/10">
+                          <Trash2 size={16} />
+                        </Button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
-              {sortedJobs.length === 0 && <tr><td colSpan="6" style={{ textAlign: 'center', padding: '1rem' }}>Nenhum job encontrado.</td></tr>}
+              {sortedJobs.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="px-6 py-10 text-center text-text-secondary">
+                    Nenhum job encontrado com os filtros atuais.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
-        <Pagination
-          currentPage={page}
-          totalItems={totalJobs}
-          pageSize={pageSize}
-          onPageChange={setPage}
-          onPageSizeChange={setPageSize}
-        />
-      </div>
+        <div className="p-4 border-t border-border">
+          <Pagination
+            currentPage={page}
+            totalItems={totalJobs}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        </div>
+      </Card>
     </div>
   );
 }
