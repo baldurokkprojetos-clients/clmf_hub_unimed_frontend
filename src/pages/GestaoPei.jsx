@@ -186,12 +186,12 @@ export default function GestaoPei() {
                         <tbody className="divide-y divide-border">
                             {data.map(item => (
                                 <tr key={item.id} className="hover:bg-slate-800/30 transition-colors">
-                                    <td className="px-6 py-4 text-sm text-text-primary">{item.paciente}</td>
-                                    <td className="px-6 py-4 text-sm text-text-secondary font-mono">{item.carteirinha}</td>
-                                    <td className="px-6 py-4 text-sm text-text-secondary">{item.codigo_terapia}</td>
-                                    <td className="px-6 py-4 text-sm text-text-secondary">{item.guia_vinculada}</td>
-                                    <td className="px-6 py-4 text-sm text-text-secondary">{item.sessoes_autorizadas}</td>
-                                    <td className="px-6 py-4 text-sm text-text-primary">
+                                    <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">{item.paciente}</td>
+                                    <td className="px-6 py-4 text-sm text-text-secondary font-mono whitespace-nowrap">{item.carteirinha}</td>
+                                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{item.codigo_terapia}</td>
+                                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{item.guia_vinculada}</td>
+                                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{item.sessoes_autorizadas}</td>
+                                    <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">
                                         {editingItem?.id === item.id ? (
                                             <Input
                                                 type="number"
@@ -203,7 +203,7 @@ export default function GestaoPei() {
                                             />
                                         ) : item.pei_semanal}
                                     </td>
-                                    <td className="px-6 py-4 text-sm text-text-secondary">
+                                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">
                                         {item.validade ? new Date(item.validade).toLocaleDateString() : '-'}
                                     </td>
                                     <td className="px-6 py-4 text-sm">

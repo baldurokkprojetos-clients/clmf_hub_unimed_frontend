@@ -69,7 +69,7 @@ export default function Logs() {
             <tbody className="divide-y divide-border">
               {logs.map(log => (
                 <tr key={log.id} className="hover:bg-slate-800/30 transition-colors">
-                  <td className="px-6 py-4 text-sm text-text-secondary font-mono">{formatDateTime(log.created_at)}</td>
+                  <td className="px-6 py-4 text-sm text-text-secondary font-mono whitespace-nowrap">{formatDateTime(log.created_at)}</td>
                   <td className="px-6 py-4 text-sm">
                     <Badge variant={getBadgeVariant(log.level)}>{log.level}</Badge>
                   </td>

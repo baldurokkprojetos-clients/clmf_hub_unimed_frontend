@@ -15,6 +15,7 @@ export default function Carteirinhas() {
     const [loading, setLoading] = useState(false);
     const [file, setFile] = useState(null);
     const [overwrite, setOverwrite] = useState(false);
+    const [showUpload, setShowUpload] = useState(false);
 
     // Pagination & Search state
     const [page, setPage] = useState(1);
@@ -148,28 +149,40 @@ export default function Carteirinhas() {
 
             {/* Upload Section */}
             <Card title="Upload em Lote">
-                <form onSubmit={handleUpload} className="flex flex-col md:flex-row gap-4 items-center">
-                    <div className="flex-1 w-full relative">
-                        <input
-                            type="file"
-                            accept=".xlsx, .xls, .csv"
-                            onChange={e => setFile(e.target.files[0])}
-                            className="w-full text-sm text-text-secondary
-                            file:mr-4 file:py-2 file:px-4
-                            file:rounded-full file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-primary file:text-white
-                            hover:file:bg-secondary cursor-pointer"
-                        />
-                    </div>
-                    <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer">
-                        <input type="checkbox" checked={overwrite} onChange={e => setOverwrite(e.target.checked)} className="rounded border-gray-600 bg-slate-800 text-primary focus:ring-primary" />
-                        Sobrescrever tudo?
-                    </label>
-                    <Button type="submit" disabled={loading || !file} isLoading={loading} variant="primary">
-                        <Upload size={16} className="mr-2" /> Importar
+                {!showUpload ? (
+                    <Button onClick={() => setShowUpload(true)} variant="secondary">
+                        <Upload size={16} className="mr-2" /> Upload Carteirinhas (Excel/CSV)
                     </Button>
-                </form>
+                ) : (
+                    <div className="animate-fade-in">
+                        <div className="flex justify-between items-center mb-4">
+                            <h4 className="text-sm font-medium text-text-secondary">Importar Arquivo</h4>
+                            <Button variant="ghost" size="sm" onClick={() => setShowUpload(false)}><X size={16} /></Button>
+                        </div>
+                        <form onSubmit={handleUpload} className="flex flex-col md:flex-row gap-4 items-center">
+                            <div className="flex-1 w-full relative">
+                                <input
+                                    type="file"
+                                    accept=".xlsx, .xls, .csv"
+                                    onChange={e => setFile(e.target.files[0])}
+                                    className="w-full text-sm text-text-secondary
+                                file:mr-4 file:py-2 file:px-4
+                                file:rounded-full file:border-0
+                                file:text-sm file:font-semibold
+                                file:bg-primary file:text-white
+                                hover:file:bg-secondary cursor-pointer"
+                                />
+                            </div>
+                            <label className="flex items-center gap-2 text-sm text-text-secondary cursor-pointer whitespace-nowrap">
+                                <input type="checkbox" checked={overwrite} onChange={e => setOverwrite(e.target.checked)} className="rounded border-gray-600 bg-slate-800 text-primary focus:ring-primary" />
+                                Sobrescrever tudo?
+                            </label>
+                            <Button type="submit" disabled={loading || !file} isLoading={loading} variant="primary">
+                                <Upload size={16} className="mr-2" /> Importar
+                            </Button>
+                        </form>
+                    </div>
+                )}
             </Card>
 
             <Card>
@@ -296,10 +309,10 @@ export default function Carteirinhas() {
                             {sortedCarteirinhas.map(c => (
                                 <tr key={c.id} className="hover:bg-slate-800/30 transition-colors">
                                     <td className="px-6 py-4 text-sm text-text-secondary font-mono">{c.id}</td>
-                                    <td className="px-6 py-4 text-sm text-text-secondary font-mono">{c.carteirinha}</td>
-                                    <td className="px-6 py-4 text-sm text-text-primary font-medium">{c.paciente || '-'}</td>
-                                    <td className="px-6 py-4 text-sm text-text-secondary">{c.id_paciente || '-'}</td>
-                                    <td className="px-6 py-4 text-sm text-text-secondary">{c.id_pagamento || '-'}</td>
+                                    <td className="px-6 py-4 text-sm text-text-secondary font-mono whitespace-nowrap">{c.carteirinha}</td>
+                                    <td className="px-6 py-4 text-sm text-text-primary font-medium whitespace-nowrap">{c.paciente || '-'}</td>
+                                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{c.id_paciente || '-'}</td>
+                                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{c.id_pagamento || '-'}</td>
                                     <td className="px-6 py-4 text-sm">
                                         <Badge variant={c.status === 'ativo' ? 'success' : 'default'}>{c.status || 'ativo'}</Badge>
                                     </td>

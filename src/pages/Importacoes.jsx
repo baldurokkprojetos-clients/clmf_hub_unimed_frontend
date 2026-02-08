@@ -378,8 +378,8 @@ export default function Importacoes() {
             <tbody className="divide-y divide-border">
               {sortedJobs.map(job => (
                 <tr key={job.id} className="hover:bg-slate-800/30 transition-colors">
-                  <td className="px-6 py-4 text-sm text-text-primary">#{job.id}</td>
-                  <td className="px-6 py-4 text-sm text-text-secondary">{formatDateTime(job.created_at)}</td>
+                  <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">#{job.id}</td>
+                  <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{formatDateTime(job.created_at)}</td>
                   <td className="px-6 py-4 text-sm">
                     {getStatusBadge(job.status)}
                   </td>

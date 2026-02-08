@@ -211,15 +211,15 @@ export default function BaseGuias() {
                                     const paciente = carteirinhas.find(c => c.id === g.carteirinha_id);
                                     return (
                                         <tr key={g.id} className="hover:bg-slate-800/30 transition-colors">
-                                            <td className="px-6 py-4 text-sm text-text-secondary">{formatDateTime(g.created_at)}</td>
-                                            <td className="px-6 py-4 text-sm text-text-primary">{paciente ? paciente.paciente || paciente.carteirinha : g.carteirinha_id}</td>
-                                            <td className="px-6 py-4 text-sm text-text-secondary font-mono bg-slate-900/30 rounded px-2 py-1 inline-block mt-2">{g.guia}</td>
-                                            <td className="px-6 py-4 text-sm text-text-secondary">{formatDate(g.data_autorizacao)}</td>
-                                            <td className="px-6 py-4 text-sm text-text-secondary">{g.senha}</td>
-                                            <td className="px-6 py-4 text-sm text-text-secondary">{formatDate(g.validade)}</td>
-                                            <td className="px-6 py-4 text-sm text-text-secondary">{g.codigo_terapia}</td>
-                                            <td className="px-6 py-4 text-sm text-text-secondary">{g.qtde_solicitada}</td>
-                                            <td className="px-6 py-4 text-sm text-text-primary font-bold">{g.sessoes_autorizadas}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{formatDateTime(g.created_at)}</td>
+                                            <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">{paciente ? paciente.paciente || paciente.carteirinha : g.carteirinha_id}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary font-mono bg-slate-900/30 rounded px-2 py-1 inline-block mt-2 whitespace-nowrap">{g.guia}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{formatDate(g.data_autorizacao)}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{g.senha}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{formatDate(g.validade)}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{g.codigo_terapia}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{g.qtde_solicitada}</td>
+                                            <td className="px-6 py-4 text-sm text-text-primary font-bold whitespace-nowrap">{g.sessoes_autorizadas}</td>
                                         </tr>
                                     );
                                 })}
