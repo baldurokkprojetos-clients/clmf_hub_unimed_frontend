@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import BaseGuias from './pages/BaseGuias';
 import Dashboard from './pages/Dashboard';
 import GestaoPei from './pages/GestaoPei';
+import Manual from './pages/Manual';
 import MainLayout from './layouts/MainLayout';
 
 function PrivateRoute({ children }) {
@@ -47,6 +48,12 @@ export default function App() {
         <Route path="/pei" element={
           <PrivateRoute>
             <GestaoPei />
+          </PrivateRoute>
+        } />
+
+        <Route path="/manual" element={
+          <PrivateRoute>
+            <Manual />
           </PrivateRoute>
         } />
 
