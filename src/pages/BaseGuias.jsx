@@ -5,6 +5,11 @@ import { Download, Filter, X, Calendar } from 'lucide-react';
 import { formatDate, formatDateTime } from '../utils/formatters';
 import SearchableSelect from '../components/SearchableSelect';
 
+// Design System
+import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+
 export default function BaseGuias() {
     const [guias, setGuias] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -21,18 +26,14 @@ export default function BaseGuias() {
         carteirinha_id: ''
     });
 
-    // Sorting
     const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
 
-
-    // Fetch Carteirinhas for select
     useEffect(() => {
         api.get('/carteirinhas/?limit=1000').then(res => {
             setCarteirinhas(res.data.data || res.data);
         }).catch(console.error);
     }, []);
 
-    // Fetch Guias with effect on dependencies
     useEffect(() => {
         fetchGuias();
     }, [page, pageSize, filters]);
@@ -45,11 +46,9 @@ export default function BaseGuias() {
                 skip: (page - 1) * pageSize,
             };
 
-            // Clean filters
             if (filters.status) params.status = filters.status;
             if (filters.created_at_start) params.created_at_start = filters.created_at_start;
             if (filters.created_at_end) params.created_at_end = filters.created_at_end;
-            // Ensure ID is passed correctly (not empty string)
             if (filters.carteirinha_id && filters.carteirinha_id !== "") {
                 params.carteirinha_id = parseInt(filters.carteirinha_id);
             }
@@ -128,18 +127,13 @@ export default function BaseGuias() {
     };
 
     return (
-        <div>
-            <h1 style={{ fontSize: '2rem', marginBottom: '1.5rem' }}>Base Guias Unimed - {username}</h1>
+        <div className="space-y-6">
+            <h1 className="text-2xl font-bold text-text-primary">Base Guias Unimed</h1>
 
-            <div className="glass-panel" style={{ padding: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h3>Listagem de Guias</h3>
-                </div>
-
-                {/* Filters */}
-                <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                    <div style={{ minWidth: '200px', flex: 1 }}>
-                        <label>Paciente / Carteirinha</label>
+            <Card noPadding>
+                <div className="p-4 border-b border-border flex flex-col md:flex-row gap-4 items-end bg-surface/30">
+                    <div className="flex-1 w-full md:w-auto min-w-[250px]">
+                        <label className="block text-xs font-semibold text-text-secondary mb-1">Paciente / Carteirinha</label>
                         <SearchableSelect
                             options={[{ value: '', label: 'Todos os Pacientes' }, ...carteirinhas.map(c => ({
                                 value: c.id,
@@ -154,107 +148,99 @@ export default function BaseGuias() {
                         />
                     </div>
 
-                    {/* Date Inputs with Calendar Icon */}
-                    <div>
-                        <label>Data Import. Início</label>
-                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                            <Calendar size={18} style={{ position: 'absolute', left: 8, color: '#aaa', pointerEvents: 'none' }} />
-                            <input
-                                type="date"
-                                style={{ paddingLeft: '32px', paddingRight: '10px', height: '38px', borderRadius: '4px', background: '#333', border: '1px solid #555', color: 'white' }}
-                                value={filters.created_at_start}
-                                onChange={e => {
-                                    setFilters({ ...filters, created_at_start: e.target.value });
-                                    setPage(1);
-                                }}
-                            />
-                        </div>
+                    <div className="w-full md:w-40">
+                        <label className="block text-xs font-semibold text-text-secondary mb-1">Data Import. Início</label>
+                        <Input
+                            type="date"
+                            value={filters.created_at_start}
+                            onChange={e => {
+                                setFilters({ ...filters, created_at_start: e.target.value });
+                                setPage(1);
+                            }}
+                        />
                     </div>
 
-                    <div>
-                        <label>Data Import. Fim</label>
-                        <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                            <Calendar size={18} style={{ position: 'absolute', left: 8, color: '#aaa', pointerEvents: 'none' }} />
-                            <input
-                                type="date"
-                                style={{ paddingLeft: '32px', paddingRight: '10px', height: '38px', borderRadius: '4px', background: '#333', border: '1px solid #555', color: 'white' }}
-                                value={filters.created_at_end}
-                                onChange={e => {
-                                    setFilters({ ...filters, created_at_end: e.target.value });
-                                    setPage(1);
-                                }}
-                            />
-                        </div>
+                    <div className="w-full md:w-40">
+                        <label className="block text-xs font-semibold text-text-secondary mb-1">Data Import. Fim</label>
+                        <Input
+                            type="date"
+                            value={filters.created_at_end}
+                            onChange={e => {
+                                setFilters({ ...filters, created_at_end: e.target.value });
+                                setPage(1);
+                            }}
+                        />
                     </div>
 
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <button className="btn" onClick={handleClearFilters} style={{ background: '#4b5563', color: 'white' }} title="Limpar Filtros">
-                            <X size={16} style={{ marginRight: 5 }} /> Limpar
-                        </button>
-                        <button className="btn" onClick={handleExport} style={{ background: '#10b981', color: 'white' }}>
-                            <Download size={16} style={{ marginRight: 5 }} /> Exportar Excel
-                        </button>
+                    <div className="flex gap-2">
+                        <Button variant="ghost" onClick={handleClearFilters} className="text-text-secondary hover:text-text-primary">
+                            <X size={16} className="mr-2" /> Limpar
+                        </Button>
+                        <Button onClick={handleExport} variant="success">
+                            <Download size={16} className="mr-2" /> Exportar
+                        </Button>
                     </div>
                 </div>
 
-                {loading ? <p>Carregando...</p> : (
-                    <div style={{ overflowX: 'auto' }}>
-                        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                                <tr style={{ background: 'rgba(255,255,255,0.05)' }}>
-                                    <th onClick={() => handleSort('created_at')} style={{ cursor: 'pointer', padding: '0.8rem' }}>
+                {loading ? <div className="p-8 text-center text-text-secondary">Carregando...</div> : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead className="bg-slate-900/50 text-text-secondary text-xs uppercase tracking-wider">
+                                <tr>
+                                    <th onClick={() => handleSort('created_at')} className="px-6 py-3 text-left cursor-pointer hover:text-primary">
                                         Data Import {sortConfig.key === 'created_at' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                     </th>
-                                    <th style={{ padding: '0.8rem' }}>Carteira / Paciente</th>
-                                    <th onClick={() => handleSort('guia')} style={{ cursor: 'pointer', padding: '0.8rem' }}>
+                                    <th className="px-6 py-3 text-left">Carteira / Paciente</th>
+                                    <th onClick={() => handleSort('guia')} className="px-6 py-3 text-left cursor-pointer hover:text-primary">
                                         Guia {sortConfig.key === 'guia' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                     </th>
-                                    <th onClick={() => handleSort('data_autorizacao')} style={{ cursor: 'pointer', padding: '0.8rem' }}>
+                                    <th onClick={() => handleSort('data_autorizacao')} className="px-6 py-3 text-left cursor-pointer hover:text-primary">
                                         Data Autoriz. {sortConfig.key === 'data_autorizacao' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                     </th>
-                                    <th style={{ padding: '0.8rem' }}>Senha</th>
-                                    <th onClick={() => handleSort('validade')} style={{ cursor: 'pointer', padding: '0.8rem' }}>
+                                    <th className="px-6 py-3 text-left">Senha</th>
+                                    <th onClick={() => handleSort('validade')} className="px-6 py-3 text-left cursor-pointer hover:text-primary">
                                         Validade {sortConfig.key === 'validade' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                     </th>
-                                    <th style={{ padding: '0.8rem' }}>Terapia</th>
-                                    <th style={{ padding: '0.8rem' }}>Solicitado</th>
-                                    <th style={{ padding: '0.8rem' }}>Autorizado</th>
+                                    <th className="px-6 py-3 text-left">Terapia</th>
+                                    <th className="px-6 py-3 text-left">Solicitado</th>
+                                    <th className="px-6 py-3 text-left">Autorizado</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {sortedGuias.length > 0 ? sortedGuias.map(g => {
+                            <tbody className="divide-y divide-border">
+                                {sortedGuias.map(g => {
                                     const paciente = carteirinhas.find(c => c.id === g.carteirinha_id);
                                     return (
-                                        <tr key={g.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                                            <td style={{ padding: '0.8rem' }}>{formatDateTime(g.created_at)}</td>
-                                            <td style={{ padding: '0.8rem' }}>{paciente ? paciente.paciente || paciente.carteirinha : g.carteirinha_id}</td>
-                                            <td style={{ padding: '0.8rem' }}>{g.guia}</td>
-                                            <td style={{ padding: '0.8rem' }}>{formatDate(g.data_autorizacao)}</td>
-                                            <td style={{ padding: '0.8rem' }}>{g.senha}</td>
-                                            <td style={{ padding: '0.8rem' }}>{formatDate(g.validade)}</td>
-                                            <td style={{ padding: '0.8rem' }}>{g.codigo_terapia}</td>
-                                            <td style={{ padding: '0.8rem' }}>{g.qtde_solicitada}</td>
-                                            <td style={{ padding: '0.8rem' }}>{g.sessoes_autorizadas}</td>
+                                        <tr key={g.id} className="hover:bg-slate-800/30 transition-colors">
+                                            <td className="px-6 py-4 text-sm text-text-secondary">{formatDateTime(g.created_at)}</td>
+                                            <td className="px-6 py-4 text-sm text-text-primary">{paciente ? paciente.paciente || paciente.carteirinha : g.carteirinha_id}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary font-mono bg-slate-900/30 rounded px-2 py-1 inline-block mt-2">{g.guia}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary">{formatDate(g.data_autorizacao)}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary">{g.senha}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary">{formatDate(g.validade)}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary">{g.codigo_terapia}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary">{g.qtde_solicitada}</td>
+                                            <td className="px-6 py-4 text-sm text-text-primary font-bold">{g.sessoes_autorizadas}</td>
                                         </tr>
                                     );
-                                }) : (
-                                    <tr><td colSpan="9" style={{ textAlign: 'center', padding: '1rem' }}>Nenhuma guia encontrada.</td></tr>
+                                })}
+                                {sortedGuias.length === 0 && (
+                                    <tr><td colSpan="9" className="px-6 py-10 text-center text-text-secondary">Nenhuma guia encontrada.</td></tr>
                                 )}
                             </tbody>
                         </table>
                     </div>
                 )}
 
-                <Pagination
-                    currentPage={page}
-                    totalItems={totalItems}
-                    pageSize={pageSize}
-                    onPageChange={setPage}
-                    onPageSizeChange={setPageSize}
-                />
-            </div>
-
-
+                <div className="p-4 border-t border-border">
+                    <Pagination
+                        currentPage={page}
+                        totalItems={totalItems}
+                        pageSize={pageSize}
+                        onPageChange={setPage}
+                        onPageSizeChange={setPageSize}
+                    />
+                </div>
+            </Card>
         </div>
     );
 }
