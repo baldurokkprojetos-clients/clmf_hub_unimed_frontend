@@ -10,13 +10,31 @@ import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 
+// Loading Overlay Component
+const ProcessingModal = ({ isOpen }) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div className="bg-surface p-8 rounded-xl border border-border flex flex-col items-center gap-4 max-w-sm w-full animate-bounce-in">
+                <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <div className="text-center">
+                    <h3 className="text-xl font-bold text-text-primary mb-2">Exportando Guias...</h3>
+                    <p className="text-text-secondary text-sm">Aguarde enquanto geramos seu arquivo Excel.</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export default function BaseGuias() {
     const [guias, setGuias] = useState([]);
     const [loading, setLoading] = useState(false);
     const [totalItems, setTotalItems] = useState(0);
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(25);
+    const [pageSize, setPageSize] = useState(25);
     const [carteirinhas, setCarteirinhas] = useState([]);
+    const [isExporting, setIsExporting] = useState(false);
 
     const username = localStorage.getItem('username') || 'Usuário';
 
@@ -104,6 +122,7 @@ export default function BaseGuias() {
     };
 
     const handleExport = async () => {
+        setIsExporting(true);
         try {
             const params = {};
             if (filters.created_at_start) params.created_at_start = filters.created_at_start;
@@ -123,11 +142,14 @@ export default function BaseGuias() {
         } catch (error) {
             console.error("Download failed", error);
             alert("Erro ao exportar");
+        } finally {
+            setIsExporting(false);
         }
     };
 
     return (
         <div className="space-y-6">
+            <ProcessingModal isOpen={isExporting} />
             <h1 className="text-2xl font-bold text-text-primary">Base Guias Unimed</h1>
 
             <Card noPadding>

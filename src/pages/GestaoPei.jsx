@@ -9,6 +9,22 @@ import Card from '../components/ui/Card';
 import { Input, Select } from '../components/ui/Input';
 import Badge from '../components/ui/Badge';
 
+// Loading Overlay Component
+const ProcessingModal = ({ isOpen }) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div className="bg-surface p-8 rounded-xl border border-border flex flex-col items-center gap-4 max-w-sm w-full animate-bounce-in">
+                <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <div className="text-center">
+                    <h3 className="text-xl font-bold text-text-primary mb-2">Exportando Dados...</h3>
+                    <p className="text-text-secondary text-sm">Isso pode levar alguns segundos dependendo do volume de dados.</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 function StatCard({ title, count, color, icon: Icon, onClick }) {
     return (
         <Card
@@ -96,6 +112,7 @@ export default function GestaoPei() {
 
     return (
         <div className="space-y-6">
+            <ProcessingModal isOpen={isExporting} />
             <h1 className="text-2xl font-bold text-text-primary">Gestão PEI</h1>
 
             {/* Warning Alert */}
