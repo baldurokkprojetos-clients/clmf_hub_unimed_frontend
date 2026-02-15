@@ -267,7 +267,7 @@ export default function Importacoes() {
       )}
 
       {/* Creation Panel */}
-      <Card>
+      <Card className="relative z-10">
         <h3 className="text-lg font-semibold text-text-primary mb-4 border-b border-border pb-2">Nova Solicitação</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
