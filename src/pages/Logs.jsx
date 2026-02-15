@@ -7,6 +7,8 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Badge from '../components/ui/Badge';
 
+import WorkerList from '../components/WorkerList';
+
 export default function Logs() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -54,6 +56,8 @@ export default function Logs() {
           <RefreshCcw size={16} className={`mr-2 ${loading ? 'animate-spin' : ''}`} /> Atualizar
         </Button>
       </div>
+
+      <WorkerList />
 
       <Card noPadding>
         <div className="overflow-x-auto">

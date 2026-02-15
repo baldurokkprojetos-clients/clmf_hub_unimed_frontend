@@ -11,6 +11,9 @@ import Card from '../components/ui/Card';
 import { Input, Select } from '../components/ui/Input';
 import Badge from '../components/ui/Badge';
 
+
+import WorkerList from '../components/WorkerList';
+
 export default function Importacoes() {
   const [loading, setLoading] = useState(false);
   const username = localStorage.getItem('username') || 'Usuário';
@@ -212,8 +215,14 @@ export default function Importacoes() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center border-b border-border pb-4">
-        <h1 className="text-2xl font-bold text-text-primary">Importações / Jobs</h1>
-        <span className="text-text-secondary text-sm">Usuário: {username}</span>
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">Importações / Jobs</h1>
+          <span className="text-text-secondary text-sm">Usuário: {username}</span>
+        </div>
+        <div className="items-end">
+          <div className="text-xs text-text-secondary mb-1 text-right">Workers Linkados:</div>
+          <WorkerList compact={true} />
+        </div>
       </div>
 
       {/* Stats Bar */}
