@@ -57,7 +57,12 @@ export default function Logs() {
         </Button>
       </div>
 
-      <WorkerList />
+      <div className="flex justify-end">
+        <div className="items-end">
+          <div className="text-xs text-text-secondary mb-1 text-right">Workers Linkados:</div>
+          <WorkerList compact={true} />
+        </div>
+      </div>
 
       <Card noPadding>
         <div className="overflow-x-auto">
