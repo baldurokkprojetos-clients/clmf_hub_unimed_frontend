@@ -12,7 +12,9 @@ export default function WorkerList({ compact = false }) {
     const fetchWorkers = async () => {
         try {
             const res = await api.get('/workers/');
-            setWorkers(res.data);
+            const data = res.data || [];
+            data.sort((a, b) => a.hostname.localeCompare(b.hostname, undefined, { numeric: true, sensitivity: 'base' }));
+            setWorkers(data);
         } catch (e) {
             console.error("Error fetching workers", e);
         }
