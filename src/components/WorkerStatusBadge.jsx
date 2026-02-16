@@ -18,7 +18,9 @@ const WorkerStatusBadge = ({ status, lastHeartbeat }) => {
             case 'idle':
                 return { variant: 'success', icon: Activity, label: 'Online/Ocioso', text: 'text-success' };
             case 'processing':
-                return { variant: 'info', icon: Cpu, label: 'Processando', text: 'text-info' };
+            case 'busy':
+            case 'working':
+                return { variant: 'info', icon: Cpu, label: 'Em uso', text: 'text-info' };
             case 'error':
                 return { variant: 'danger', icon: AlertTriangle, label: 'Erro', text: 'text-error' };
             case 'offline':
