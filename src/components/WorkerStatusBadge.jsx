@@ -20,8 +20,9 @@ const WorkerStatusBadge = ({ status, lastHeartbeat }) => {
             case 'processing':
                 return { variant: 'info', icon: Cpu, label: 'Processando', text: 'text-info' };
             case 'error':
+                return { variant: 'danger', icon: AlertTriangle, label: 'Erro', text: 'text-error' };
             case 'offline':
-                return { variant: 'danger', icon: AlertTriangle, label: 'Erro/Offline', text: 'text-error' };
+                return { variant: 'danger', icon: Power, label: 'Offline', text: 'text-error' };
             default:
                 // Default to offline if unknown status
                 return { variant: 'default', icon: Power, label: status || 'Desconhecido', text: 'text-text-secondary' };
