@@ -41,10 +41,23 @@ export default function WorkerList({ compact = false }) {
         return (
             <div className="flex flex-wrap gap-4">
                 {workers.map(w => (
-                    <div key={w.id} className="flex items-center gap-2 bg-surface border border-border px-3 py-1.5 rounded-full">
-                        <span className="text-xs font-bold text-text-primary">{w.hostname}</span>
-                        <div className="h-4 w-px bg-border mx-1"></div>
+                    <div key={w.id} className="flex items-center gap-3 bg-surface border border-border px-3 py-1.5 rounded-lg shadow-sm">
+                        <div className="flex flex-col">
+                            <span className="text-xs font-bold text-text-primary">{w.hostname}</span>
+                            {w.current_job_id && (
+                                <span className="text-[10px] text-blue-400 -mt-0.5">Job #{w.current_job_id}</span>
+                            )}
+                        </div>
+                        <div className="h-5 w-px bg-border"></div>
                         <WorkerStatusBadge status={w.status} lastHeartbeat={w.last_heartbeat} />
+                        <div className="h-5 w-px bg-border"></div>
+                        <button
+                            onClick={() => handleRestart(w.id)}
+                            className="text-text-secondary hover:text-orange-500 transition-colors"
+                            title="Solicitar Reinício"
+                        >
+                            <Power size={14} />
+                        </button>
                     </div>
                 ))}
                 {workers.length === 0 && <span className="text-xs text-text-secondary">Nenhum worker conectado.</span>}
