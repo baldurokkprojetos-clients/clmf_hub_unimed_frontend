@@ -98,13 +98,17 @@ export default function EditCarteirinhaModal({ carteirinha, onClose, onSave }) {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-text-secondary mb-1">ID Pagamento</label>
-                            <Input
-                                type="number"
+                            <label className="block text-sm font-medium text-text-secondary mb-1">Convênio (ID Pagamento)</label>
+                            <Select
                                 value={formData.id_pagamento}
                                 onChange={e => setFormData({ ...formData, id_pagamento: e.target.value })}
-                                placeholder="456"
-                            />
+                            >
+                                <option value="">Selecione um convênio</option>
+                                <option value="Unimed Goiania Guia">Unimed Goiania Guia</option>
+                                <option value="Unimed Intercambio">Unimed Intercambio</option>
+                                <option value="Ipasgo - TEA">Ipasgo - TEA</option>
+                                <option value="Ipasgo - Geral">Ipasgo - Geral</option>
+                            </Select>
                         </div>
                     </div>
 

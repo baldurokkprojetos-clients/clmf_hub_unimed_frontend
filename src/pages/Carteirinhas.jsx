@@ -222,8 +222,17 @@ export default function Carteirinhas() {
                                     <Input type="number" value={newCarteirinha.id_paciente} onChange={(e) => setNewCarteirinha({ ...newCarteirinha, id_paciente: e.target.value })} placeholder="123" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-text-secondary mb-1">ID Pagamento</label>
-                                    <Input type="number" value={newCarteirinha.id_pagamento} onChange={(e) => setNewCarteirinha({ ...newCarteirinha, id_pagamento: e.target.value })} placeholder="456" />
+                                    <label className="block text-xs font-semibold text-text-secondary mb-1">Convênio (ID Pagamento)</label>
+                                    <Select
+                                        value={newCarteirinha.id_pagamento}
+                                        onChange={(e) => setNewCarteirinha({ ...newCarteirinha, id_pagamento: e.target.value })}
+                                    >
+                                        <option value="">Selecione um convênio</option>
+                                        <option value="Unimed Goiania Guia">Unimed Goiania Guia</option>
+                                        <option value="Unimed Intercambio">Unimed Intercambio</option>
+                                        <option value="Ipasgo - TEA">Ipasgo - TEA</option>
+                                        <option value="Ipasgo - Geral">Ipasgo - Geral</option>
+                                    </Select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold text-text-secondary mb-1">Status</label>
@@ -258,7 +267,7 @@ export default function Carteirinhas() {
                         className="w-full md:w-48"
                     />
                     <Input
-                        placeholder="ID Pagamento"
+                        placeholder="Convênio"
                         value={filters.id_pagamento}
                         onChange={(e) => { setFilters({ ...filters, id_pagamento: e.target.value }); setPage(1); }}
                         className="w-full md:w-32"
@@ -297,7 +306,7 @@ export default function Carteirinhas() {
                                     ID Paciente {sortConfig.key === 'id_paciente' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                 </th>
                                 <th onClick={() => handleSort('id_pagamento')} className="px-6 py-3 text-left cursor-pointer hover:text-primary">
-                                    ID Pagamento {sortConfig.key === 'id_pagamento' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
+                                    Convênio {sortConfig.key === 'id_pagamento' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                 </th>
                                 <th onClick={() => handleSort('status')} className="px-6 py-3 text-left cursor-pointer hover:text-primary">
                                     Status {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
