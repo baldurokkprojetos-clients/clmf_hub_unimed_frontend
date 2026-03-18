@@ -126,7 +126,7 @@ export default function Carteirinhas() {
 
         try {
             setLoading(true);
-            await api.post('/carteirinhas', {
+            await api.post('/carteirinhas/', {
                 carteirinha: newCarteirinha.carteirinha,
                 paciente: newCarteirinha.paciente,
                 id_paciente: newCarteirinha.id_paciente ? parseInt(newCarteirinha.id_paciente) : null,
@@ -141,6 +141,13 @@ export default function Carteirinhas() {
         } catch (e) {
             alert("Erro ao criar: " + (e.response?.data?.detail || e.message));
         } finally { setLoading(false); }
+    };
+
+    const convenioMap = {
+        3: "Unimed Goiânia Guia",
+        21: "Unimed Intercâmbio",
+        6: "Ipasgo - TEA",
+        31: "Ipasgo - Geral"
     };
 
     return (
@@ -218,20 +225,21 @@ export default function Carteirinhas() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-text-secondary mb-1">ID Paciente</label>
-                                    <Input type="number" value={newCarteirinha.id_paciente} onChange={(e) => setNewCarteirinha({ ...newCarteirinha, id_paciente: e.target.value })} placeholder="123" />
+                                    <label className="block text-xs font-semibold text-text-secondary mb-1">ID Paciente *</label>
+                                    <Input required type="number" value={newCarteirinha.id_paciente} onChange={(e) => setNewCarteirinha({ ...newCarteirinha, id_paciente: e.target.value })} placeholder="123" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-text-secondary mb-1">Convênio (ID Pagamento)</label>
+                                    <label className="block text-xs font-semibold text-text-secondary mb-1">Convênio (ID Pagamento) *</label>
                                     <Select
+                                        required
                                         value={newCarteirinha.id_pagamento}
                                         onChange={(e) => setNewCarteirinha({ ...newCarteirinha, id_pagamento: e.target.value })}
                                     >
                                         <option value="">Selecione um convênio</option>
-                                        <option value="Unimed Goiania Guia">Unimed Goiania Guia</option>
-                                        <option value="Unimed Intercambio">Unimed Intercambio</option>
-                                        <option value="Ipasgo - TEA">Ipasgo - TEA</option>
-                                        <option value="Ipasgo - Geral">Ipasgo - Geral</option>
+                                        <option value="3">Unimed Goiânia Guia</option>
+                                        <option value="21">Unimed Intercâmbio</option>
+                                        <option value="6">Ipasgo - TEA</option>
+                                        <option value="31">Ipasgo - Geral</option>
                                     </Select>
                                 </div>
                                 <div>
@@ -321,7 +329,9 @@ export default function Carteirinhas() {
                                     <td className="px-6 py-4 text-sm text-text-secondary font-mono whitespace-nowrap">{c.carteirinha}</td>
                                     <td className="px-6 py-4 text-sm text-text-primary font-medium whitespace-nowrap">{c.paciente || '-'}</td>
                                     <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{c.id_paciente || '-'}</td>
-                                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{c.id_pagamento || '-'}</td>
+                                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">
+                                        {c.id_pagamento ? (convenioMap[c.id_pagamento] || c.id_pagamento) : '-'}
+                                    </td>
                                     <td className="px-6 py-4 text-sm">
                                         <Badge variant={c.status === 'ativo' ? 'success' : 'default'}>{c.status || 'ativo'}</Badge>
                                     </td>

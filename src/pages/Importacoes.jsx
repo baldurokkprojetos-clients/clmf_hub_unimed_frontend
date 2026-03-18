@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Pagination from '../components/Pagination';
-import { Play, Filter, RefreshCcw, Trash2, Clock, CheckCircle, AlertCircle, XCircle, Users, Activity } from 'lucide-react';
+import { Play, Filter, RefreshCcw, Trash2, Clock, CheckCircle, AlertCircle, XCircle, Users, Activity, ShieldCheck, ShieldAlert, ShieldOff } from 'lucide-react';
 import { formatDateTime, maskCarteirinha, validateCarteirinha } from '../utils/formatters';
 import SearchableSelect from '../components/SearchableSelect';
 
@@ -36,6 +36,9 @@ export default function Importacoes() {
     created_at_start: '',
     created_at_end: ''
   });
+
+  // Modal State
+  const [selectedJobForModal, setSelectedJobForModal] = useState(null);
 
   useEffect(() => {
     fetchCarteirinhas();
@@ -210,6 +213,14 @@ export default function Importacoes() {
 
   const handleTempCarteirinhaChange = (e) => {
     e.target.value = maskCarteirinha(e.target.value);
+  };
+
+  const handleOpenGuiasModal = (job) => {
+    if (job.valida_prestador && job.valida_prestador.guias) {
+      setSelectedJobForModal(job);
+    } else {
+      alert("Nenhum detalhe de guias encontrado neste JSON.");
+    }
   };
 
   return (
@@ -433,6 +444,7 @@ export default function Importacoes() {
                 <th className="px-6 py-3 text-left cursor-pointer hover:text-primary" onClick={() => handleSort('id')}>ID</th>
                 <th className="px-6 py-3 text-left cursor-pointer hover:text-primary" onClick={() => handleSort('created_at')}>Data Criação</th>
                 <th className="px-6 py-3 text-left cursor-pointer hover:text-primary" onClick={() => handleSort('status')}>Status</th>
+                <th className="px-6 py-3 text-left">Status Guias</th>
                 <th className="px-6 py-3 text-left cursor-pointer hover:text-primary" onClick={() => handleSort('attempts')}>Tentativas</th>
                 <th className="px-6 py-3 text-left">Tempo Proc.</th>
                 <th className="px-6 py-3 text-left">Ações</th>
@@ -446,12 +458,53 @@ export default function Importacoes() {
                   <td className="px-6 py-4 text-sm">
                     {getStatusBadge(job.status)}
                   </td>
+                  <td className="px-6 py-4 text-sm">
+                    {(() => {
+                      const json = job.valida_prestador;
+                      if (!json || json.tipo_json === 'Null' || !json.tipo_json) {
+                        return (
+                          <span
+                            className="inline-flex items-center gap-1.5 text-red-400 cursor-default"
+                            title="Sem guias Processadas"
+                          >
+                            <ShieldOff size={18} className="text-red-400" />
+                            <span className="text-xs">Sem Guias</span>
+                          </span>
+                        );
+                      }
+                      if (json.tipo_json === 'All Sucess') {
+                        return (
+                          <button
+                            className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 transition-colors cursor-pointer group relative"
+                            title="Guias Válidas Importadas — Clique para ver detalhes"
+                            onClick={() => handleOpenGuiasModal(job)}
+                          >
+                            <ShieldCheck size={18} />
+                            <span className="text-xs font-medium">Válidas</span>
+                          </button>
+                        );
+                      }
+                      if (json.tipo_json === 'Thered') {
+                        return (
+                          <button
+                            className="inline-flex items-center gap-1.5 text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
+                            title="Possui Guias Bloqueadas — Clique para ver detalhes"
+                            onClick={() => handleOpenGuiasModal(job)}
+                          >
+                            <ShieldAlert size={18} />
+                            <span className="text-xs font-medium">Bloqueadas</span>
+                          </button>
+                        );
+                      }
+                      return <span className="text-text-secondary">-</span>;
+                    })()}
+                  </td>
                   <td className="px-6 py-4 text-sm text-text-secondary">{job.attempts}</td>
                   <td className="px-6 py-4 text-sm text-text-secondary font-mono">{calculateDuration(job.created_at, job.updated_at)}</td>
                   <td className="px-6 py-4 text-sm">
-                    {(job.status === 'error' && job.attempts > 3) && (
+                    {job.status === 'error' && (
                       <div className="flex gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => handleRetryJob(job.id)} title="Reenviar" className="text-amber-500 hover:text-amber-400 hover:bg-amber-500/10">
+                        <Button size="sm" variant="ghost" onClick={() => handleRetryJob(job.id)} title="Reprocessar" className="text-amber-500 hover:text-amber-400 hover:bg-amber-500/10">
                           <RefreshCcw size={16} />
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => handleDeleteJob(job.id)} title="Excluir" className="text-red-500 hover:text-red-400 hover:bg-red-500/10">
@@ -483,6 +536,50 @@ export default function Importacoes() {
           />
         </div>
       </Card>
+
+      {/* JSON Detail Modal */}
+      {selectedJobForModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <Card className="max-w-3xl w-full max-h-[90vh] flex flex-col pt-4 px-6 pb-6">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h3 className="text-xl font-bold text-text-primary">
+                  Paciente: {selectedJobForModal.paciente || 'Não Identificado'}
+                </h3>
+                <span className="text-sm text-text-secondary">Job #{selectedJobForModal.id}</span>
+              </div>
+              <button onClick={() => setSelectedJobForModal(null)} className="text-text-secondary hover:text-text-primary">
+                <XCircle size={24} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto pr-2">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-slate-900/80 sticky top-0 text-xs uppercase text-text-secondary">
+                  <tr>
+                    <th className="px-4 py-3 border-b border-border">Número Guia</th>
+                    <th className="px-4 py-3 border-b border-border">Código Terapia</th>
+                    <th className="px-4 py-3 border-b border-border">Vínculo Prestador</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {Object.entries(selectedJobForModal.valida_prestador.guias || {}).map(([guia_key, attr]) => (
+                    <tr key={guia_key} className="hover:bg-slate-800/40">
+                      <td className="px-4 py-3 text-sm text-text-primary font-mono">{guia_key}</td>
+                      <td className="px-4 py-3 text-sm text-text-secondary">{attr.codigo_terapia}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={attr.Vinculo_prestador === 'Guia Válida' ? 'text-emerald-500 font-medium' : 'text-amber-500 font-medium'}>
+                          {attr.Vinculo_prestador}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
