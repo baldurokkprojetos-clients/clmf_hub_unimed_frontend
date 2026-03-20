@@ -1,13 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import Card from './ui/Card';
 import Button from './ui/Button';
 import WorkerStatusBadge from './WorkerStatusBadge';
-import { RefreshCw, Power } from 'lucide-react';
+import { RefreshCw, Power, WifiOff } from 'lucide-react';
+
+const MIN_INTERVAL = 5000;
+const MAX_INTERVAL = 60000;
 
 export default function WorkerList({ compact = false }) {
     const [workers, setWorkers] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [backendError, setBackendError] = useState(false);
+    const intervalRef = useRef(null);
+    const currentDelay = useRef(MIN_INTERVAL);
+
+    const scheduleNext = (delay) => {
+        if (intervalRef.current) clearTimeout(intervalRef.current);
+        intervalRef.current = setTimeout(fetchWorkers, delay);
+    };
 
     const fetchWorkers = async () => {
         try {
@@ -15,15 +26,22 @@ export default function WorkerList({ compact = false }) {
             const data = res.data || [];
             data.sort((a, b) => a.hostname.localeCompare(b.hostname, undefined, { numeric: true, sensitivity: 'base' }));
             setWorkers(data);
+            setBackendError(false);
+            currentDelay.current = MIN_INTERVAL;
+            scheduleNext(MIN_INTERVAL);
         } catch (e) {
             console.error("Error fetching workers", e);
+            setBackendError(true);
+            // Exponential backoff: double delay, cap at MAX_INTERVAL
+            const nextDelay = Math.min(currentDelay.current * 2, MAX_INTERVAL);
+            currentDelay.current = nextDelay;
+            scheduleNext(nextDelay);
         }
     };
 
     useEffect(() => {
         fetchWorkers();
-        const interval = setInterval(fetchWorkers, 5000);
-        return () => clearInterval(interval);
+        return () => { if (intervalRef.current) clearTimeout(intervalRef.current); };
     }, []);
 
     const handleRestart = async (id) => {
@@ -39,7 +57,12 @@ export default function WorkerList({ compact = false }) {
 
     if (compact) {
         return (
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4 items-center">
+                {backendError && (
+                    <div className="flex items-center gap-1 text-xs text-red-400" title="Backend inacessível — tentando reconectar...">
+                        <WifiOff size={12} /> Sem conexão
+                    </div>
+                )}
                 {workers.map(w => (
                     <div key={w.id} className="flex items-center gap-3 bg-surface border border-border px-3 py-1.5 rounded-lg shadow-sm">
                         <div className="flex flex-col">
@@ -68,7 +91,14 @@ export default function WorkerList({ compact = false }) {
     return (
         <Card className="mb-6">
             <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-text-primary">Status dos Workers</h3>
+                <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-text-primary">Status dos Workers</h3>
+                    {backendError && (
+                        <span className="flex items-center gap-1 text-xs text-red-400 bg-red-400/10 border border-red-400/20 px-2 py-0.5 rounded-full" title="Backend inacessível — reconectando com backoff...">
+                            <WifiOff size={11} /> Backend inacessível
+                        </span>
+                    )}
+                </div>
                 <Button variant="ghost" size="sm" onClick={fetchWorkers}><RefreshCw size={14} /></Button>
             </div>
 
