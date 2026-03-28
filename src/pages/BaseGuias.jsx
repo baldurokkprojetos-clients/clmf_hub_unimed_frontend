@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import Pagination from '../components/Pagination';
-import { Download, Filter, X, Calendar } from 'lucide-react';
+import { Download, Filter, X, Calendar, ShieldCheck, ShieldAlert, ShieldOff } from 'lucide-react';
 import { formatDate, formatDateTime } from '../utils/formatters';
 import SearchableSelect from '../components/SearchableSelect';
 
@@ -223,6 +223,7 @@ export default function BaseGuias() {
                                         Validade {sortConfig.key === 'validade' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                     </th>
                                     <th className="px-6 py-3 text-left">Terapia</th>
+                                    <th className="px-6 py-3 text-left">Status</th>
                                     <th className="px-6 py-3 text-left">Solicitado</th>
                                     <th className="px-6 py-3 text-left">Autorizado</th>
                                 </tr>
@@ -239,6 +240,30 @@ export default function BaseGuias() {
                                             <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{g.senha}</td>
                                             <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{formatDate(g.validade)}</td>
                                             <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{g.codigo_terapia}</td>
+                                            <td className="px-6 py-4 text-sm whitespace-nowrap">
+                                                {(() => {
+                                                    const json = g.valida_prestador;
+                                                    if (!json || json.Vinculo_prestador === 'Null' || !json.Vinculo_prestador) {
+                                                        return (
+                                                            <span className="text-red-400" title="Sem informação de validação">
+                                                                <ShieldOff size={18} />
+                                                            </span>
+                                                        );
+                                                    }
+                                                    if (json.Vinculo_prestador === 'Guia Válida') {
+                                                        return (
+                                                            <span className="text-emerald-400" title="Guia Válida">
+                                                                <ShieldCheck size={18} />
+                                                            </span>
+                                                        );
+                                                    }
+                                                    return (
+                                                        <span className="text-amber-400" title={json.Vinculo_prestador}>
+                                                            <ShieldAlert size={18} />
+                                                        </span>
+                                                    );
+                                                })()}
+                                            </td>
                                             <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{g.qtde_solicitada}</td>
                                             <td className="px-6 py-4 text-sm text-text-primary font-bold whitespace-nowrap">{g.sessoes_autorizadas}</td>
                                         </tr>

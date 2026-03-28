@@ -485,10 +485,13 @@ export default function Importacoes() {
                         );
                       }
                       if (json.tipo_json === 'Thered') {
+                        const blockedGuidesCount = Object.values(json.guias || {}).filter(g => g.Vinculo_prestador !== 'Guia Válida').length;
+                        const firstBlockMsg = Object.values(json.guias || {}).find(g => g.Vinculo_prestador !== 'Guia Válida')?.Vinculo_prestador || '';
+                        
                         return (
                           <button
                             className="inline-flex items-center gap-1.5 text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
-                            title="Possui Guias Bloqueadas — Clique para ver detalhes"
+                            title={`Possui ${blockedGuidesCount} Guia(s) Bloqueada(s): ${firstBlockMsg} — Clique para ver detalhes`}
                             onClick={() => handleOpenGuiasModal(job)}
                           >
                             <ShieldAlert size={18} />
