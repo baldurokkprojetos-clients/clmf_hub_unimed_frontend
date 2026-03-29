@@ -81,7 +81,7 @@ export default function PeiModal({ onClose }) {
                                 <tr key={item.id} style={{ borderBottom: '1px solid #222' }}>
                                     <td style={{ padding: '10px' }}>{item.paciente}</td>
                                     <td style={{ padding: '10px' }}>{item.carteirinha}</td>
-                                    <td style={{ padding: '10px' }}>{item.codigo_terapia}</td>
+                                    <td style={{ padding: '10px' }}>{item.codigo_procedimento}</td>
                                     <td style={{ padding: '10px' }}>
                                         {/* Show editing input if this is the item */}
                                         {editingItem?.id === item.id ? (

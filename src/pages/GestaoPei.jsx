@@ -191,7 +191,7 @@ export default function GestaoPei() {
                             <tr>
                                 <th className="px-6 py-3 text-left">Paciente</th>
                                 <th className="px-6 py-3 text-left">Carteirinha</th>
-                                <th className="px-6 py-3 text-left">Terapia</th>
+                                <th className="px-6 py-3 text-left">Código Procedimento</th>
                                 <th className="px-6 py-3 text-left">Guia Vinc.</th>
                                 <th className="px-6 py-3 text-left">Qtd Aut.</th>
                                 <th className="px-6 py-3 text-left">PEI Semanal</th>
@@ -205,7 +205,7 @@ export default function GestaoPei() {
                                 <tr key={item.id} className="hover:bg-slate-800/30 transition-colors">
                                     <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">{item.paciente}</td>
                                     <td className="px-6 py-4 text-sm text-text-secondary font-mono whitespace-nowrap">{item.carteirinha}</td>
-                                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{item.codigo_terapia}</td>
+                                    <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{item.codigo_procedimento}</td>
                                     <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{item.guia_vinculada}</td>
                                     <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{item.sessoes_autorizadas}</td>
                                     <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">

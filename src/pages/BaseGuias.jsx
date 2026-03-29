@@ -222,7 +222,7 @@ export default function BaseGuias() {
                                     <th onClick={() => handleSort('validade')} className="px-6 py-3 text-left cursor-pointer hover:text-primary">
                                         Validade {sortConfig.key === 'validade' && (sortConfig.direction === 'asc' ? '▲' : '▼')}
                                     </th>
-                                    <th className="px-6 py-3 text-left">Terapia</th>
+                                    <th className="px-6 py-3 text-left">Código Procedimento</th>
                                     <th className="px-6 py-3 text-left">Status</th>
                                     <th className="px-6 py-3 text-left">Solicitado</th>
                                     <th className="px-6 py-3 text-left">Autorizado</th>
@@ -239,7 +239,7 @@ export default function BaseGuias() {
                                             <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{formatDate(g.data_autorizacao)}</td>
                                             <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{g.senha}</td>
                                             <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{formatDate(g.validade)}</td>
-                                            <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{g.codigo_terapia}</td>
+                                            <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{g.codigo_procedimento}</td>
                                             <td className="px-6 py-4 text-sm whitespace-nowrap">
                                                 {(() => {
                                                     const json = g.valida_prestador;

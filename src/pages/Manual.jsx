@@ -177,7 +177,7 @@ const manualSections = [
                     </li>
                     <li><strong>Senha</strong> — Senha da guia.</li>
                     <li><strong>Validade</strong> — Data de validade (clicável para ordenar).</li>
-                    <li><strong>Terapia</strong> — Código da terapia.</li>
+                    <li><strong>Código Procedimento</strong> — Identificação da terapia/procedimento.</li>
                     <li><strong>Solicitado / Autorizado</strong> — Qtde. de sessões solicitadas e autorizadas.</li>
                 </ul>
 
