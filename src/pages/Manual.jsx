@@ -111,7 +111,7 @@ const manualSections = [
                         <li><strong>Status Guias</strong> — Ícone interativo que indica o resultado das guias processadas:
                             <div className="flex flex-col gap-1 mt-2 ml-4">
                                 <span className="flex items-center gap-2 text-emerald-400"><ShieldCheck size={16} /> <strong>Válidas</strong> — Todas as guias foram processadas com sucesso. Clique para ver detalhes.</span>
-                                <span className="flex items-center gap-2 text-amber-400"><ShieldAlert size={16} /> <strong>Bloqueadas</strong> — Existem guias com vínculo de prestador bloqueado. Clique para ver detalhes.</span>
+                                <span className="flex items-center gap-2 text-amber-400"><ShieldAlert size={16} /> <strong>Bloqueadas</strong> — Existem guias com vínculo de prestador bloqueado. Passe o mouse para ver o resumo de bloqueios ou clique para ver detalhes.</span>
                                 <span className="flex items-center gap-2 text-red-400"><ShieldOff size={16} /> <strong>Sem Guias</strong> — Nenhuma guia foi processada neste job.</span>
                             </div>
                         </li>
@@ -168,6 +168,13 @@ const manualSections = [
                     <li><strong>Carteira / Paciente</strong> — Nome do paciente vinculado à carteirinha.</li>
                     <li><strong>Guia</strong> — Número da guia (clicável para ordenar).</li>
                     <li><strong>Data Autoriz.</strong> — Data de autorização da guia (clicável para ordenar).</li>
+                    <li><strong>Status</strong> — Indica a validação do prestador para aquela guia:
+                        <div className="flex flex-col gap-1 mt-2 ml-4">
+                            <span className="flex items-center gap-2 text-emerald-400"><ShieldCheck size={16} /> <strong>Válida</strong> — Guia pertencente à rede.</span>
+                            <span className="flex items-center gap-2 text-amber-400"><ShieldAlert size={16} /> <strong>Bloqueada</strong> — Prestador não pertence à rede (passe o mouse para ver o erro).</span>
+                            <span className="flex items-center gap-2 text-red-400"><ShieldOff size={16} /> <strong>Sem Info</strong> — Validação não disponível.</span>
+                        </div>
+                    </li>
                     <li><strong>Senha</strong> — Senha da guia.</li>
                     <li><strong>Validade</strong> — Data de validade (clicável para ordenar).</li>
                     <li><strong>Terapia</strong> — Código da terapia.</li>
