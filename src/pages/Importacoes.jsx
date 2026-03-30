@@ -133,6 +133,7 @@ export default function Importacoes() {
       if (importType === 'temp') {
         const cartInput = document.getElementById('temp-carteirinha').value;
         const pacInput = document.getElementById('temp-paciente').value;
+        const convInput = document.getElementById('temp-id-pagamento').value;
 
         if (!cartInput || !pacInput) {
           alert("Preencha carteirinha e nome do paciente.");
@@ -148,7 +149,8 @@ export default function Importacoes() {
           type: 'temp',
           temp_patient: {
             carteirinha: cartInput,
-            paciente: pacInput
+            paciente: pacInput,
+            id_pagamento: convInput ? parseInt(convInput) : null
           }
         };
       } else {
@@ -283,8 +285,8 @@ export default function Importacoes() {
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
 
-          <div className="md:col-span-3">
-            <label className="block text-sm font-medium text-text-secondary mb-1">Tipo de Importação</label>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-text-secondary mb-1">Tipo Importação</label>
             <Select
               value={importType}
               onChange={e => { setImportType(e.target.value); setSelectedCarteirinhas([]); }}
@@ -292,23 +294,23 @@ export default function Importacoes() {
               <option value="single">Única</option>
               <option value="multiple">Múltipla</option>
               <option value="all">Todos</option>
-              <option value="temp">Paciente Temporário</option>
+              <option value="temp">Temporário</option>
             </Select>
           </div>
 
           {importType === 'temp' ? (
             <>
-              <div className="md:col-span-3">
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-text-secondary mb-1">Carteirinha (Temp)</label>
                 <Input
                   type="text"
-                  placeholder="Ex: 0000.0000.000000.00-0"
+                  placeholder="0000.0000..."
                   id="temp-carteirinha"
                   maxLength={21}
                   onChange={handleTempCarteirinhaChange}
                 />
               </div>
-              <div className="md:col-span-4">
+              <div className="md:col-span-3">
                 <label className="block text-sm font-medium text-text-secondary mb-1">Nome do Paciente</label>
                 <Input
                   type="text"
@@ -316,10 +318,19 @@ export default function Importacoes() {
                   id="temp-paciente"
                 />
               </div>
+              <div className="md:col-span-3">
+                <label className="block text-sm font-medium text-text-secondary mb-1">Convênio</label>
+                <Select id="temp-id-pagamento" defaultValue="3">
+                  <option value="3">Unimed Goiânia Guia</option>
+                  <option value="21">Unimed Intercâmbio</option>
+                  <option value="6">Ipasgo - TEA</option>
+                  <option value="31">Ipasgo - Geral</option>
+                </Select>
+              </div>
             </>
           ) : (
             importType !== 'all' && (
-              <div className="md:col-span-7">
+              <div className="md:col-span-8">
                 <label className="block text-sm font-medium text-text-secondary mb-1">Selecione os Pacientes</label>
 
                 {importType === 'multiple' ? (
