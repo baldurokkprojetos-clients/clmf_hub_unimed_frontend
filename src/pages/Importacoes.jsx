@@ -300,7 +300,7 @@ export default function Importacoes() {
 
           {importType === 'temp' ? (
             <>
-              <div className="md:col-span-2">
+              <div className="md:col-span-3">
                 <label className="block text-sm font-medium text-text-secondary mb-1">Carteirinha (Temp)</label>
                 <Input
                   type="text"
