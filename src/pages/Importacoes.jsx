@@ -318,7 +318,7 @@ export default function Importacoes() {
                   id="temp-paciente"
                 />
               </div>
-              <div className="md:col-span-3">
+              <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-text-secondary mb-1">Convênio</label>
                 <Select id="temp-id-pagamento" defaultValue="3">
                   <option value="3">Unimed Goiânia Guia</option>
