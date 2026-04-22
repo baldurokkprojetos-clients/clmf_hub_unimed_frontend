@@ -19,11 +19,12 @@ const Login = () => {
 
         try {
             const response = await api.post('/auth/login', { access_key: accessKey.trim() });
-            const { token, username } = response.data;
+            const { token, username, permitir_protocolo } = response.data;
 
             // Save to localStorage
             localStorage.setItem('token', token);
             localStorage.setItem('username', username);
+            localStorage.setItem('permitir_protocolo', permitir_protocolo ? 'true' : 'false');
 
             // Redirect
             navigate('/');

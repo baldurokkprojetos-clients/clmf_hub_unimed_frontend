@@ -23,6 +23,7 @@ const manualSections = [
                     <li><strong>Importações / Jobs</strong> — Cria e monitora solicitações de processamento automático.</li>
                     <li><strong>Base Guias</strong> — Consulta e exporta o histórico de guias importadas.</li>
                     <li><strong>Gestão PEI</strong> — Controle de validade dos Planos de Ensino Individualizados.</li>
+                    <li><strong>Protocolo Fichas</strong> — Extração inteligente de dados de PDFs via IA Gemini.</li>
                     <li><strong>Carteirinhas</strong> — Gerenciamento da base de pacientes/carteirinhas.</li>
                     <li><strong>Logs</strong> — Monitoramento técnico dos robôs de automação.</li>
                 </ul>
@@ -285,6 +286,44 @@ const manualSections = [
                             <tr><td className="px-4 py-2 border border-border font-mono">31</td><td className="px-4 py-2 border border-border">Ipasgo - Geral</td></tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        )
+    },
+    {
+        id: 'protocolo',
+        title: 'Protocolo Fichas',
+        icon: FileText,
+        content: (
+            <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-text-primary">Módulo: Protocolo Fichas</h2>
+                <p className="text-text-secondary">
+                    Este módulo utiliza Inteligência Artificial (Google Gemini) para ler arquivos PDF de fichas de atendimento e extrair automaticamente dados como: Número da Guia, Nome do Beneficiário, Datas de Atendimento e Status de Assinatura.
+                </p>
+
+                <h3 className="text-xl font-semibold text-text-primary mb-2">Abas Disponíveis</h3>
+                <ul className="list-disc list-inside ml-4 space-y-2 text-text-secondary">
+                    <li><strong>Importação</strong>: Onde você envia os arquivos para processamento e acompanha o resultado em tempo real.</li>
+                    <li><strong>Gerar Lotes</strong>: Histórico de todas as sessões anteriores, onde é possível baixar os arquivos ZIP.</li>
+                </ul>
+
+                <h3 className="text-xl font-semibold text-text-primary mb-2">Processo de Utilização</h3>
+                <ol className="list-decimal list-inside ml-4 space-y-3 text-text-secondary">
+                    <li><strong>Upload</strong>: Arraste ou selecione arquivos PDF. O sistema carregará automaticamente a sessão mais recente ao abrir a página.</li>
+                    <li><strong>Extração IA</strong>: O progresso e os custos são exibidos no Dashboard em tempo real.</li>
+                    <li><strong>Validação Manual</strong>: 
+                        <ul className="list-disc list-inside ml-6 mt-2 space-y-1">
+                            <li><strong>Máscara de Nome</strong>: O sistema propõe um nome mesmo em erros. Clique no <strong>Lápis</strong> para corrigir.</li>
+                            <li><strong>Edição de Datas</strong>: Clique na coluna de Atendimentos. O <strong>Frame de Edição</strong> abrirá alinhado à linha selecionada, permitindo ajustar datas e assinaturas rapidamente.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Visualização Integrada</strong>: Clique no ícone de <strong>Olho</strong>. O documento abrirá em um frame flutuante sobre a tabela, facilitando a conferência sem sair da tela.</li>
+                    <li><strong>Histórico</strong>: Utilize a seção <strong>Sessões Anteriores</strong> (colapsada no final da página) para navegar entre lotes passados e baixar arquivos antigos.</li>
+                    <li><strong>Gerar ZIP</strong>: Clique em <strong>Gerar ZIP</strong> para baixar os arquivos renomeados. O sistema cuida da compactação automática.</li>
+                </ol>
+
+                <div className="bg-blue-500/10 border-l-4 border-blue-500 p-4 rounded text-blue-400">
+                    <strong>Dica:</strong> A edição de qualquer dado (nome ou datas) em um arquivo com erro valida automaticamente o item para inclusão no lote final.
                 </div>
             </div>
         )

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, FileText, Activity, LogOut, Table, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Activity, LogOut, Table, BookOpen, Stamp } from 'lucide-react';
 
 export default function Sidebar() {
     const location = useLocation();
@@ -43,6 +43,11 @@ export default function Sidebar() {
                 <Link to="/manual" className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all ${isActive('/manual')}`}>
                     <BookOpen size={18} /> Manual de Utilização
                 </Link>
+                {localStorage.getItem('permitir_protocolo') === 'true' && (
+                    <Link to="/protocolo" className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all ${isActive('/protocolo')}`}>
+                        <Stamp size={18} /> Protocolo Fichas
+                    </Link>
+                )}
                 <Link to="/logs" className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all ${isActive('/logs')}`}>
                     <Activity size={18} /> Logs
                 </Link>

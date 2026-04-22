@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import BaseGuias from './pages/BaseGuias';
 import GestaoPei from './pages/GestaoPei';
 import Manual from './pages/Manual';
+import ProtocoloFichas from './pages/ProtocoloFichas';
 import MainLayout from './layouts/MainLayout';
 
 function PrivateRoute({ children }) {
@@ -59,6 +60,12 @@ export default function App() {
         <Route path="/logs" element={
           <PrivateRoute>
             <Logs />
+          </PrivateRoute>
+        } />
+
+        <Route path="/protocolo" element={
+          <PrivateRoute>
+            <ProtocoloFichas />
           </PrivateRoute>
         } />
       </Routes>
