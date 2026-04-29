@@ -52,8 +52,9 @@ export default function useProtocoloLote() {
     // Fetch list of all lotes
     const fetchLotes = useCallback(async () => {
         try {
-            const res = await protocoloApi.listLotes({ limit: 50 });
-            const lotesData = (res.data.data || []).sort((a, b) => b.id - a.id);
+            const res = await protocoloApi.listLotes({ limit: 15 });
+            const lotesData = res.data.data || [];
+            // backend already returns sorted by created_at desc
             setLotes(lotesData);
 
             // Auto-load the latest session (highest ID) if none active

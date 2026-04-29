@@ -15,9 +15,17 @@ function PrivateRoute({ children }) {
   return token ? <MainLayout>{children}</MainLayout> : <Navigate to="/login" />;
 }
 
+import { useAutoLogout } from './hooks/useAutoLogout';
+
+function AutoLogout() {
+  useAutoLogout();
+  return null;
+}
+
 export default function App() {
   return (
     <BrowserRouter>
+      <AutoLogout />
       <Routes>
         <Route path="/login" element={<Login />} />
 
