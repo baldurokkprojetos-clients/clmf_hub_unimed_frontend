@@ -15,17 +15,18 @@ function PrivateRoute({ children }) {
   return token ? <MainLayout>{children}</MainLayout> : <Navigate to="/login" />;
 }
 
-import { useAutoLogout } from './hooks/useAutoLogout';
+// Auto-logout por inatividade desativado conforme solicitado
+// import { useAutoLogout } from './hooks/useAutoLogout';
 
-function AutoLogout() {
-  useAutoLogout();
-  return null;
-}
+// function AutoLogout() {
+//   useAutoLogout();
+//   return null;
+// }
 
 export default function App() {
   return (
     <BrowserRouter>
-      <AutoLogout />
+      {/* <AutoLogout /> - logoff automático por inatividade desativado */}
       <Routes>
         <Route path="/login" element={<Login />} />
 
