@@ -453,6 +453,7 @@ export default function Importacoes() {
             <thead className="bg-slate-900/50 text-text-secondary text-xs uppercase tracking-wider">
               <tr>
                 <th className="px-6 py-3 text-left cursor-pointer hover:text-primary" onClick={() => handleSort('id')}>ID</th>
+                <th className="px-6 py-3 text-left cursor-pointer hover:text-primary" onClick={() => handleSort('paciente')}>Nome</th>
                 <th className="px-6 py-3 text-left cursor-pointer hover:text-primary" onClick={() => handleSort('created_at')}>Data Criação</th>
                 <th className="px-6 py-3 text-left cursor-pointer hover:text-primary" onClick={() => handleSort('status')}>Status</th>
                 <th className="px-6 py-3 text-left">Status Guias</th>
@@ -465,6 +466,7 @@ export default function Importacoes() {
               {sortedJobs.map(job => (
                 <tr key={job.id} className="hover:bg-slate-800/30 transition-colors">
                   <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">#{job.id}</td>
+                  <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">{job.paciente || 'Não Identificado'}</td>
                   <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{formatDateTime(job.created_at)}</td>
                   <td className="px-6 py-4 text-sm">
                     {getStatusBadge(job.status)}
@@ -531,7 +533,7 @@ export default function Importacoes() {
               ))}
               {sortedJobs.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="px-6 py-10 text-center text-text-secondary">
+                  <td colSpan="8" className="px-6 py-10 text-center text-text-secondary">
                     Nenhum job encontrado com os filtros atuais.
                   </td>
                 </tr>
