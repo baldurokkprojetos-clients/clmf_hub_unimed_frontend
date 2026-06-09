@@ -35,7 +35,8 @@ export default function Importacoes() {
     status: '',
     created_at_start: '',
     created_at_end: '',
-    carteirinha_id: ''
+    carteirinha_id: '',
+    status_guias: ''
   });
 
   // Modal State
@@ -82,6 +83,7 @@ export default function Importacoes() {
       if (filters.created_at_start) params.created_at_start = filters.created_at_start;
       if (filters.created_at_end) params.created_at_end = filters.created_at_end;
       if (filters.carteirinha_id) params.carteirinha_id = filters.carteirinha_id;
+      if (filters.status_guias) params.status_guias = filters.status_guias;
 
       const res = await api.get('/jobs/', { params });
 
@@ -450,6 +452,19 @@ export default function Importacoes() {
               <option value="error">Erro</option>
               <option value="pending">Pendente</option>
               <option value="processing">Processando</option>
+            </Select>
+          </div>
+          <div className="w-40">
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Status Guias</label>
+            <Select
+              value={filters.status_guias}
+              onChange={e => { setFilters({ ...filters, status_guias: e.target.value }); setPage(1); }}
+              className="py-1.5 text-sm"
+            >
+              <option value="">Todos</option>
+              <option value="validas">Válidas</option>
+              <option value="bloqueadas">Bloqueadas</option>
+              <option value="sem_guias">Sem Guias</option>
             </Select>
           </div>
           <div className="w-40">
