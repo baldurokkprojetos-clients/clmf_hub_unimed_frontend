@@ -34,7 +34,8 @@ export default function Importacoes() {
   const [filters, setFilters] = useState({
     status: '',
     created_at_start: '',
-    created_at_end: ''
+    created_at_end: '',
+    carteirinha_id: ''
   });
 
   // Modal State
@@ -80,6 +81,7 @@ export default function Importacoes() {
       if (filters.status) params.status = filters.status;
       if (filters.created_at_start) params.created_at_start = filters.created_at_start;
       if (filters.created_at_end) params.created_at_end = filters.created_at_end;
+      if (filters.carteirinha_id) params.carteirinha_id = filters.carteirinha_id;
 
       const res = await api.get('/jobs/', { params });
 
@@ -421,9 +423,21 @@ export default function Importacoes() {
       </Card>
 
       {/* Jobs List */}
-      <Card noPadding>
+      <Card noPadding className="relative z-10">
         {/* Filters Toolbar */}
         <div className="p-4 border-b border-border flex flex-wrap gap-4 items-end bg-surface/30">
+          <div className="w-64">
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Paciente</label>
+            <SearchableSelect
+              options={carteirinhas.map(c => ({
+                value: c.id,
+                label: c.paciente ? `${c.paciente} (${c.carteirinha})` : c.carteirinha
+              }))}
+              value={filters.carteirinha_id || ''}
+              onChange={(val) => { setFilters({ ...filters, carteirinha_id: val || '' }); setPage(1); }}
+              placeholder="Todos os Pacientes..."
+            />
+          </div>
           <div className="w-40">
             <label className="block text-xs font-semibold text-text-secondary mb-1">Status</label>
             <Select
