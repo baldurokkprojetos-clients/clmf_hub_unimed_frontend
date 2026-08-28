@@ -604,6 +604,7 @@ export default function Importacoes() {
                   <tr>
                     <th className="px-4 py-3 border-b border-border">Número Guia</th>
                     <th className="px-4 py-3 border-b border-border">Código Procedimento</th>
+                    <th className="px-4 py-3 border-b border-border">Descrição Procedimento</th>
                     <th className="px-4 py-3 border-b border-border">Vínculo Prestador</th>
                   </tr>
                 </thead>
@@ -612,6 +613,7 @@ export default function Importacoes() {
                     <tr key={guia_key} className="hover:bg-slate-800/40">
                       <td className="px-4 py-3 text-sm text-text-primary font-mono">{guia_key}</td>
                       <td className="px-4 py-3 text-sm text-text-secondary">{attr.codigo_procedimento}</td>
+                      <td className="px-4 py-3 text-sm text-text-secondary">{attr.descricao_procedimento || '-'}</td>
                       <td className="px-4 py-3 text-sm">
                         <span className={attr.Vinculo_prestador === 'Guia Válida' ? 'text-emerald-500 font-medium' : 'text-amber-500 font-medium'}>
                           {attr.Vinculo_prestador}
