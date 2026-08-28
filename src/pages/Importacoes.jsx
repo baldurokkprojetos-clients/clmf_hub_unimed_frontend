@@ -584,43 +584,68 @@ export default function Importacoes() {
 
       {/* JSON Detail Modal */}
       {selectedJobForModal && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-          <Card className="max-w-3xl w-full max-h-[90vh] flex flex-col pt-4 px-6 pb-6">
-            <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <Card className="max-w-5xl w-full max-h-[90vh] flex flex-col pt-5 px-6 pb-6 shadow-2xl border border-border/80">
+            <div className="flex justify-between items-center mb-5 pb-3 border-b border-border">
               <div>
-                <h3 className="text-xl font-bold text-text-primary">
-                  Paciente: {selectedJobForModal.paciente || 'Não Identificado'}
+                <h3 className="text-xl font-bold text-text-primary flex items-center gap-2">
+                  Paciente: <span className="text-primary">{selectedJobForModal.paciente || 'Não Identificado'}</span>
                 </h3>
-                <span className="text-sm text-text-secondary">Job #{selectedJobForModal.id}</span>
+                <span className="text-xs text-text-secondary">Job #{selectedJobForModal.id}</span>
               </div>
-              <button onClick={() => setSelectedJobForModal(null)} className="text-text-secondary hover:text-text-primary">
+              <button 
+                onClick={() => setSelectedJobForModal(null)} 
+                className="text-text-secondary hover:text-text-primary transition-colors p-1 rounded-lg hover:bg-slate-800"
+                title="Fechar"
+              >
                 <XCircle size={24} />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-2">
+            <div className="flex-1 overflow-y-auto pr-1">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-900/80 sticky top-0 text-xs uppercase text-text-secondary">
+                <thead className="bg-slate-900/90 sticky top-0 text-xs uppercase tracking-wider text-text-secondary z-10">
                   <tr>
-                    <th className="px-4 py-3 border-b border-border">Número Guia</th>
-                    <th className="px-4 py-3 border-b border-border">Código Procedimento</th>
-                    <th className="px-4 py-3 border-b border-border">Descrição Procedimento</th>
-                    <th className="px-4 py-3 border-b border-border">Vínculo Prestador</th>
+                    <th className="px-4 py-3.5 border-b border-border w-[140px] whitespace-nowrap">Número Guia</th>
+                    <th className="px-4 py-3.5 border-b border-border w-[160px] whitespace-nowrap">Código Procedimento</th>
+                    <th className="px-4 py-3.5 border-b border-border">Descrição Procedimento</th>
+                    <th className="px-4 py-3.5 border-b border-border min-w-[280px]">Vínculo Prestador</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
-                  {Object.entries(selectedJobForModal.valida_prestador.guias || {}).map(([guia_key, attr]) => (
-                    <tr key={guia_key} className="hover:bg-slate-800/40">
-                      <td className="px-4 py-3 text-sm text-text-primary font-mono">{guia_key}</td>
-                      <td className="px-4 py-3 text-sm text-text-secondary">{attr.codigo_procedimento}</td>
-                      <td className="px-4 py-3 text-sm text-text-secondary">{attr.descricao_procedimento || '-'}</td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={attr.Vinculo_prestador === 'Guia Válida' ? 'text-emerald-500 font-medium' : 'text-amber-500 font-medium'}>
-                          {attr.Vinculo_prestador}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                <tbody className="divide-y divide-border/60">
+                  {Object.entries(selectedJobForModal.valida_prestador.guias || {})
+                    .sort(([, a], [, b]) => {
+                      const aValid = a?.Vinculo_prestador === 'Guia Válida';
+                      const bValid = b?.Vinculo_prestador === 'Guia Válida';
+                      if (aValid && !bValid) return -1;
+                      if (!aValid && bValid) return 1;
+                      return 0;
+                    })
+                    .map(([guia_key, attr]) => {
+                      const isValid = attr.Vinculo_prestador === 'Guia Válida';
+                      return (
+                        <tr key={guia_key} className={`transition-colors ${isValid ? 'hover:bg-emerald-950/10' : 'hover:bg-amber-950/10'}`}>
+                          <td className="px-4 py-3 text-sm font-semibold text-text-primary whitespace-nowrap font-mono">
+                            {guia_key}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-text-secondary whitespace-nowrap font-mono">
+                            {attr.codigo_procedimento || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-text-primary font-medium leading-relaxed">
+                            {attr.descricao_procedimento || '-'}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold ${
+                              isValid 
+                                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                            }`}>
+                              {attr.Vinculo_prestador || '-'}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </div>
