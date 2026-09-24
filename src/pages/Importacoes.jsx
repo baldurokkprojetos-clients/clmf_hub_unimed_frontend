@@ -82,7 +82,7 @@ export default function Importacoes() {
       clearInterval(interval);
       // Ao trocar filtros/página ou desmontar: abortar busca em voo para que
       // sua resposta (obsoleta) nunca sobrescreva a próxima
-      if (abortControllerRef.current) abortControllerRef.abort();
+      if (abortControllerRef.current) abortControllerRef.current.abort();
     };
   }, [page, pageSize, filters, activeTab]);
 
