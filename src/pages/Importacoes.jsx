@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import api from '../services/api';
 import Pagination from '../components/Pagination';
-import { Play, Filter, RefreshCcw, Trash2, Clock, CheckCircle, AlertCircle, XCircle, Users, Activity, ShieldCheck, ShieldAlert, ShieldOff } from 'lucide-react';
+import { Play, Filter, RefreshCcw, Trash2, Clock, CheckCircle, AlertCircle, XCircle, Users, Activity, ShieldCheck, ShieldAlert, ShieldOff, FileSpreadsheet, Download, Upload } from 'lucide-react';
 import { formatDateTime, maskCarteirinha, validateCarteirinha } from '../utils/formatters';
 import SearchableSelect from '../components/SearchableSelect';
 
@@ -18,6 +18,9 @@ import WorkerList from '../components/WorkerList';
 export default function Importacoes() {
   const [loading, setLoading] = useState(false);
   const username = localStorage.getItem('username') || 'Usuário';
+
+  // Abas: 'importacoes' (estrutura original — principal) | 'evolucoes' (OP2 CLMF)
+  const [activeTab, setActiveTab] = useState('importacoes');
 
   // Job Creation State
   const [importType, setImportType] = useState('single');
@@ -37,8 +40,17 @@ export default function Importacoes() {
     created_at_start: '',
     created_at_end: '',
     carteirinha_id: '',
-    status_guias: ''
+    status_guias: '',
+    rotina: ''
   });
+
+  // Evoluções CLMF (OP2 ImprimirEvolucao)
+  const [evoFile, setEvoFile] = useState(null);
+  const [evoFileInputKey, setEvoFileInputKey] = useState(0);
+  const [evoUploading, setEvoUploading] = useState(false);
+  const [evoResumo, setEvoResumo] = useState(null);
+  const [evoPacientes, setEvoPacientes] = useState([]);
+  const [evoExporting, setEvoExporting] = useState(false);
 
   // Modal State
   const [selectedJobForModal, setSelectedJobForModal] = useState(null);
@@ -53,21 +65,26 @@ export default function Importacoes() {
   useEffect(() => {
     fetchCarteirinhas();
     fetchStats();
+    fetchEvolucoesPacientes();
   }, []);
 
   useEffect(() => {
-    fetchJobs();
+    if (activeTab === 'importacoes') fetchJobs();
     const interval = setInterval(() => {
-      fetchJobs(true);
-      fetchStats();
-    }, 5000); // Poll for updates
+      if (activeTab === 'importacoes') {
+        fetchJobs(true);
+        fetchStats();
+      } else {
+        fetchEvolucoesPacientes();
+      }
+    }, 5000); // Poll for updates (somente da aba ativa)
     return () => {
       clearInterval(interval);
       // Ao trocar filtros/página ou desmontar: abortar busca em voo para que
       // sua resposta (obsoleta) nunca sobrescreva a próxima
-      if (abortControllerRef.current) abortControllerRef.current.abort();
+      if (abortControllerRef.current) abortControllerRef.abort();
     };
-  }, [page, pageSize, filters]);
+  }, [page, pageSize, filters, activeTab]);
 
   const [stats, setStats] = useState(null);
 
@@ -108,6 +125,7 @@ export default function Importacoes() {
       if (filters.created_at_end) params.created_at_end = filters.created_at_end;
       if (filters.carteirinha_id) params.carteirinha_id = filters.carteirinha_id;
       if (filters.status_guias) params.status_guias = filters.status_guias;
+      if (filters.rotina) params.rotina = filters.rotina;
 
       const res = await api.get('/jobs/', { params, signal: controller.signal });
 
@@ -236,6 +254,56 @@ export default function Importacoes() {
     }
   };
 
+  // ── Evoluções CLMF (OP2 ImprimirEvolucao) ─────────────────────────────────
+  const fetchEvolucoesPacientes = async () => {
+    try {
+      const res = await api.get('/evolucoes/jobs');
+      setEvoPacientes(res.data.data || []);
+    } catch (e) { console.error("Error fetching evolucoes panel", e); }
+  };
+
+  const handleEvolucoesUpload = async () => {
+    if (!evoFile) {
+      alert("Selecione o arquivo .xlsx da planilha modelo de evoluções.");
+      return;
+    }
+    setEvoUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', evoFile);
+      const res = await api.post('/evolucoes/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setEvoResumo(res.data);
+      setEvoFile(null);
+      setEvoFileInputKey(k => k + 1);
+      fetchJobs();
+      fetchEvolucoesPacientes();
+    } catch (e) {
+      alert("Erro no upload de evoluções: " + (e.response?.data?.detail || e.message));
+    } finally {
+      setEvoUploading(false);
+    }
+  };
+
+  const handleExportEvolucoes = async () => {
+    setEvoExporting(true);
+    try {
+      const res = await api.get('/evolucoes/export', { responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      const ts = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, '');
+      link.href = url;
+      link.download = `evolucoes_status_${ts}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("Erro ao exportar status: " + (e.response?.data?.detail || e.message));
+    } finally {
+      setEvoExporting(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'success': return <Badge variant="success">Sucesso</Badge>;
@@ -280,8 +348,32 @@ export default function Importacoes() {
         </div>
       </div>
 
+      {/* Abas: Importações (estrutura original — principal) | Evoluções CLMF (OP2) */}
+      <div className="flex gap-2 border-b border-border">
+        <button
+          onClick={() => setActiveTab('importacoes')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg border-b-2 -mb-px transition-colors ${
+            activeTab === 'importacoes'
+              ? 'border-primary text-primary bg-primary/5'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          <Play size={15} /> Importações
+        </button>
+        <button
+          onClick={() => setActiveTab('evolucoes')}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t-lg border-b-2 -mb-px transition-colors ${
+            activeTab === 'evolucoes'
+              ? 'border-primary text-primary bg-primary/5'
+              : 'border-transparent text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          <FileSpreadsheet size={15} /> Evoluções CLMF
+        </button>
+      </div>
+
       {/* Stats Bar */}
-      {stats && (
+      {activeTab === 'importacoes' && stats && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <Card className="flex items-center gap-3 p-4">
             <div className="bg-blue-500/10 p-2 rounded-full text-blue-500"><Users size={20} /></div>
@@ -321,8 +413,9 @@ export default function Importacoes() {
         </div>
       )}
 
-      {/* Creation Panel */}
-      <Card className="relative z-10">
+      {/* Creation Panel (z-30: dropdown de pacientes acima dos cards seguintes) */}
+      {activeTab === 'importacoes' && (
+      <Card className="relative z-30">
         <h3 className="text-lg font-semibold text-text-primary mb-4 border-b border-border pb-2">Nova Solicitação</h3>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
@@ -461,8 +554,89 @@ export default function Importacoes() {
 
         </div>
       </Card>
+      )}
+
+      {/* Evoluções CLMF (OP2 ImprimirEvolucao) — aba própria */}
+      {activeTab === 'evolucoes' && (
+      <Card noPadding className="relative z-20">
+        <div className="p-4 border-b border-border flex flex-wrap gap-4 items-end bg-surface/30">
+          <div className="flex items-center gap-2 mr-2">
+            <FileSpreadsheet size={18} className="text-primary" />
+            <h3 className="text-sm font-semibold text-text-primary">Evoluções CLMF — Imprimir Evolução</h3>
+          </div>
+          <div className="w-80">
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Planilha de Evoluções (.xlsx)</label>
+            <input
+              key={evoFileInputKey}
+              type="file"
+              accept=".xlsx"
+              onChange={(e) => setEvoFile(e.target.files?.[0] || null)}
+              className="block w-full text-sm text-text-secondary border border-border rounded-lg cursor-pointer
+                         bg-surface file:mr-3 file:py-1.5 file:px-3 file:rounded-l-lg file:border-0
+                         file:bg-slate-800 file:text-text-primary file:text-sm file:cursor-pointer"
+            />
+          </div>
+          <Button onClick={handleEvolucoesUpload} disabled={evoUploading} className="h-[38px]">
+            <Upload size={16} /> {evoUploading ? 'Importando...' : 'Importar'}
+          </Button>
+          <div className="ml-auto flex items-center gap-3">
+            {evoResumo && (
+              <span className="text-xs text-text-secondary">
+                Lote: <b>{evoResumo.jobs}</b> jobs · <b>{evoResumo.itens}</b> itens ·{' '}
+                <b>{evoResumo.pacientes}</b> pacientes
+                {(evoResumo.erros_planilha?.length || evoResumo.falhas?.length) ? (
+                  <span className="text-amber-400"> · {(evoResumo.erros_planilha?.length || 0) + (evoResumo.falhas?.length || 0)} aviso(s)</span>
+                ) : null}
+              </span>
+            )}
+            <Button variant="ghost" onClick={handleExportEvolucoes} disabled={evoExporting} className="h-[38px] text-emerald-400 hover:text-emerald-300">
+              <Download size={16} /> {evoExporting ? 'Gerando...' : 'Exportar Status'}
+            </Button>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto max-h-[320px] overflow-y-auto">
+          <table className="w-full">
+            <thead className="bg-slate-900/50 text-text-secondary text-xs uppercase tracking-wider sticky top-0">
+              <tr>
+                <th className="px-6 py-3 text-left">Paciente</th>
+                <th className="px-6 py-3 text-left">idPaciente</th>
+                <th className="px-6 py-3 text-left">Lote</th>
+                <th className="px-6 py-3 text-center">Total</th>
+                <th className="px-6 py-3 text-center">OK</th>
+                <th className="px-6 py-3 text-center">Pendente</th>
+                <th className="px-6 py-3 text-center">Erro</th>
+                <th className="px-6 py-3 text-left">Atualizado</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {evoPacientes.map((p) => (
+                <tr key={p.idPaciente} className="hover:bg-slate-800/30 transition-colors">
+                  <td className="px-6 py-3 text-sm text-text-primary whitespace-nowrap">{p.nomePaciente || '—'}</td>
+                  <td className="px-6 py-3 text-sm text-text-secondary">{p.idPaciente}</td>
+                  <td className="px-6 py-3 text-sm text-text-secondary max-w-[220px] truncate" title={p.lote}>{p.lote || '—'}</td>
+                  <td className="px-6 py-3 text-sm text-text-primary text-center">{p.total}</td>
+                  <td className="px-6 py-3 text-center"><Badge variant="success">{p.ok}</Badge></td>
+                  <td className="px-6 py-3 text-center"><Badge variant="warning">{p.pendente}</Badge></td>
+                  <td className="px-6 py-3 text-center"><Badge variant="error">{p.erro}</Badge></td>
+                  <td className="px-6 py-3 text-sm text-text-secondary whitespace-nowrap">{formatDateTime(p.updated_at)}</td>
+                </tr>
+              ))}
+              {evoPacientes.length === 0 && (
+                <tr>
+                  <td colSpan="8" className="px-6 py-8 text-center text-text-secondary">
+                    Nenhuma importação de evoluções ainda. Envie a planilha modelo (.xlsx) acima.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+      )}
 
       {/* Jobs List */}
+      {activeTab === 'importacoes' && (
       <Card noPadding className="relative z-10">
         {/* Filters Toolbar */}
         <div className="p-4 border-b border-border flex flex-wrap gap-4 items-end bg-surface/30">
@@ -490,6 +664,19 @@ export default function Importacoes() {
               <option value="error">Erro</option>
               <option value="pending">Pendente</option>
               <option value="processing">Processando</option>
+            </Select>
+          </div>
+          <div className="w-48">
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Rotina</label>
+            <Select
+              value={filters.rotina}
+              onChange={e => { setFilters({ ...filters, rotina: e.target.value }); setPage(1); }}
+              className="py-1.5 text-sm"
+            >
+              <option value="">Todas</option>
+              <option value="none">Importações (Unimed)</option>
+              <option value="clmf_atualizar_rc">CLMF — Atualizar RC</option>
+              <option value="clmf_imprimir_evolucao">CLMF — Evoluções</option>
             </Select>
           </div>
           <div className="w-40">
@@ -537,7 +724,15 @@ export default function Importacoes() {
               {sortedJobs.map(job => (
                 <tr key={job.id} className="hover:bg-slate-800/30 transition-colors">
                   <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">#{job.id}</td>
-                  <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">{job.paciente || 'Não Identificado'}</td>
+                  <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">
+                    {job.paciente || 'Não Identificado'}
+                    {job.rotina === 'clmf_imprimir_evolucao' && (
+                      <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">Evoluções</span>
+                    )}
+                    {job.rotina === 'clmf_atualizar_rc' && (
+                      <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">RC</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{formatDateTime(job.created_at)}</td>
                   <td className="px-6 py-4 text-sm">
                     {getStatusBadge(job.status)}
@@ -623,6 +818,7 @@ export default function Importacoes() {
           />
         </div>
       </Card>
+      )}
 
       {/* JSON Detail Modal */}
       {selectedJobForModal && (
