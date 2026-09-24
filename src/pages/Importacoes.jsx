@@ -582,8 +582,11 @@ export default function Importacoes() {
           <div className="ml-auto flex items-center gap-3">
             {evoResumo && (
               <span className="text-xs text-text-secondary">
-                Lote: <b>{evoResumo.jobs}</b> jobs · <b>{evoResumo.itens}</b> itens ·{' '}
-                <b>{evoResumo.pacientes}</b> pacientes
+                {evoResumo.background && (
+                  <span className="text-emerald-400">Criando jobs em segundo plano… </span>
+                )}
+                <b>{evoResumo.jobs}</b> jobs · <b>{evoResumo.itens}</b> itens ·{' '}
+                <b>{evoResumo.pacientes}</b> pacientes{evoResumo.background ? ' (previsto)' : ''}
                 {(evoResumo.erros_planilha?.length || evoResumo.falhas?.length) ? (
                   <span className="text-amber-400"> · {(evoResumo.erros_planilha?.length || 0) + (evoResumo.falhas?.length || 0)} aviso(s)</span>
                 ) : null}
