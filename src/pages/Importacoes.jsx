@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import api from '../services/api';
 import Pagination from '../components/Pagination';
 import { Play, Filter, RefreshCcw, Trash2, Clock, CheckCircle, AlertCircle, XCircle, Users, Activity, ShieldCheck, ShieldAlert, ShieldOff } from 'lucide-react';
@@ -42,6 +43,13 @@ export default function Importacoes() {
   // Modal State
   const [selectedJobForModal, setSelectedJobForModal] = useState(null);
 
+  // Controle de corrida entre requisições da listagem: sem isso, uma resposta
+  // antiga e lenta (ex.: poll sem filtro) chega depois da filtrada e
+  // sobrescreve a tabela com todos os dados
+  const abortControllerRef = useRef(null);
+  const requestIdRef = useRef(0);
+  const inFlightRef = useRef(false);
+
   useEffect(() => {
     fetchCarteirinhas();
     fetchStats();
@@ -50,10 +58,15 @@ export default function Importacoes() {
   useEffect(() => {
     fetchJobs();
     const interval = setInterval(() => {
-      fetchJobs();
+      fetchJobs(true);
       fetchStats();
     }, 5000); // Poll for updates
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      // Ao trocar filtros/página ou desmontar: abortar busca em voo para que
+      // sua resposta (obsoleta) nunca sobrescreva a próxima
+      if (abortControllerRef.current) abortControllerRef.current.abort();
+    };
   }, [page, pageSize, filters]);
 
   const [stats, setStats] = useState(null);
@@ -72,7 +85,18 @@ export default function Importacoes() {
     } catch (e) { console.error(e); }
   };
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (fromPoll = false) => {
+    // Poll não interrompe busca em voo (evita starvation com backend lento);
+    // buscas manuais (filtro/página/ação) abortam a anterior — a mais nova vence.
+    if (fromPoll && inFlightRef.current) return;
+    if (abortControllerRef.current) abortControllerRef.current.abort();
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+    const requestId = ++requestIdRef.current;
+    inFlightRef.current = true;
+    setLoading(true);
+
     try {
       const params = {
         limit: pageSize,
@@ -85,7 +109,11 @@ export default function Importacoes() {
       if (filters.carteirinha_id) params.carteirinha_id = filters.carteirinha_id;
       if (filters.status_guias) params.status_guias = filters.status_guias;
 
-      const res = await api.get('/jobs/', { params });
+      const res = await api.get('/jobs/', { params, signal: controller.signal });
+
+      // Aplicar somente se esta ainda é a busca mais recente (pode ter sido
+      // abortada/superseded enquanto aguardávamos a resposta)
+      if (requestId !== requestIdRef.current) return;
 
       if (res.data.data) {
         setJobs(res.data.data);
@@ -93,7 +121,17 @@ export default function Importacoes() {
       } else {
         setJobs(res.data);
       }
-    } catch (e) { console.error("Error fetching jobs", e); }
+    } catch (e) {
+      // Aborte intencional (nova busca disparada): ignorar silenciosamente
+      if (!axios.isCancel(e)) console.error("Error fetching jobs", e);
+    } finally {
+      // Só a busca corrente libera os flags — a abortada não pode limpar o
+      // estado da busca que a substituiu
+      if (requestId === requestIdRef.current) {
+        inFlightRef.current = false;
+        setLoading(false);
+      }
+    }
   };
 
   const handleSort = (key) => {
@@ -474,6 +512,10 @@ export default function Importacoes() {
           <div className="w-40">
             <label className="block text-xs font-semibold text-text-secondary mb-1">Fim</label>
             <Input type="date" value={filters.created_at_end} onChange={e => { setFilters({ ...filters, created_at_end: e.target.value }); setPage(1); }} className="py-1.5 text-sm" />
+          </div>
+          <div className="ml-auto flex items-center gap-1.5 text-text-secondary">
+            <RefreshCcw size={14} className={loading ? 'animate-spin' : 'opacity-40'} />
+            <span className="text-xs">{loading ? 'Atualizando...' : 'Atualiza a cada 5s'}</span>
           </div>
         </div>
 

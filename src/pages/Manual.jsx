@@ -101,12 +101,18 @@ const manualSections = [
                 {/* Lista de Jobs */}
                 <div>
                     <h3 className="text-xl font-semibold text-text-primary mb-2">Lista de Jobs</h3>
-                    <p className="text-text-secondary mb-2">A tabela inferior exibe todos os jobs. É possível filtrar por:</p>
+                    <p className="text-text-secondary mb-2">A tabela inferior exibe todos os jobs. É possível filtrar por (os filtros podem ser combinados):</p>
                     <ul className="list-disc list-inside ml-4 space-y-1 text-text-secondary">
+                        <li><strong>Paciente</strong>: Busca com autocompletar por nome ou número de carteirinha.</li>
                         <li><strong>Status</strong>: Todos, Sucesso, Erro, Pendente ou Processando.</li>
+                        <li><strong>Status Guias</strong>: Válidas, Bloqueadas ou Sem Guias.</li>
                         <li><strong>Período</strong>: Data de criação (Início / Fim).</li>
                     </ul>
-                    <p className="text-text-secondary mt-2">A lista é atualizada automaticamente a cada 5 segundos. Colunas disponíveis:</p>
+                    <p className="text-text-secondary mt-2">
+                        A lista é atualizada automaticamente a cada 5 segundos (o indicador no canto direito da barra de filtros
+                        mostra quando uma atualização está em andamento). Ao aplicar um filtro, a tabela recarrega já com o
+                        resultado filtrado. Colunas disponíveis:
+                    </p>
                     <ul className="list-disc list-inside ml-4 space-y-1 text-text-secondary mt-2">
                         <li><strong>ID / Data Criação / Status / Tentativas / Tempo Proc.</strong> — Clique nos cabeçalhos para ordenar.</li>
                         <li><strong>Status Guias</strong> — Ícone interativo que indica o resultado das guias processadas:
