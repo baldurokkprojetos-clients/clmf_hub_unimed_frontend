@@ -39,3 +39,6 @@ node_modules/.vite/
 
 # OS
 Thumbs.db
+
+# artefato local (conteúdo já versionado em export_css/)
+export_css.zip
