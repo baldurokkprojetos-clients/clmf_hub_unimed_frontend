@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Trash2, Upload, Plus, Edit, ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
+import { Trash2, Upload, Plus, Edit, ChevronLeft, ChevronRight, Search, X, AlertTriangle } from 'lucide-react';
 import EditCarteirinhaModal from '../components/EditCarteirinhaModal';
 import { maskCarteirinha, validateCarteirinha } from '../utils/formatters';
 
@@ -43,6 +43,9 @@ export default function Carteirinhas() {
         id_pagamento: '',
         status: 'ativo'
     });
+
+    // Alerta de ID Paciente duplicado: { existing, payload }
+    const [dupWarning, setDupWarning] = useState(null);
 
     const fetchCarteirinhas = async () => {
         setLoading(true);
@@ -117,30 +120,42 @@ export default function Carteirinhas() {
         } catch (e) { alert("Erro ao excluir"); }
     };
 
-    const handleCreate = async (e) => {
+    const doCreate = async (payload, force = false) => {
+        try {
+            setLoading(true);
+            await api.post('/carteirinhas/', force ? { ...payload, force: true } : payload);
+            alert("Carteirinha criada com sucesso!");
+            setDupWarning(null);
+            setShowCreateForm(false);
+            setNewCarteirinha({ carteirinha: '', paciente: '', id_paciente: '', id_pagamento: '', status: 'ativo' });
+            setPage(1);
+            fetchCarteirinhas();
+        } catch (e) {
+            const detail = e.response?.data?.detail;
+            // ID Paciente já cadastrado: exibir alerta com opção de editar o
+            // cadastro existente ou prosseguir com o novo
+            if (e.response?.status === 409 && detail?.code === 'ID_PACIENTE_EXISTS') {
+                setDupWarning({ existing: detail.existing, payload });
+            } else {
+                alert("Erro ao criar: " + (typeof detail === 'string' && detail ? detail : e.message));
+            }
+        } finally { setLoading(false); }
+    };
+
+    const handleCreate = (e) => {
         e.preventDefault();
         if (!validateCarteirinha(newCarteirinha.carteirinha)) {
             alert("Carteirinha inválida! Deve conter 21 caracteres, ex: 0000.0000.000000.00-0");
             return;
         }
 
-        try {
-            setLoading(true);
-            await api.post('/carteirinhas/', {
-                carteirinha: newCarteirinha.carteirinha,
-                paciente: newCarteirinha.paciente,
-                id_paciente: newCarteirinha.id_paciente ? parseInt(newCarteirinha.id_paciente) : null,
-                id_pagamento: newCarteirinha.id_pagamento ? parseInt(newCarteirinha.id_pagamento) : null,
-                status: newCarteirinha.status
-            });
-            alert("Carteirinha criada com sucesso!");
-            setShowCreateForm(false);
-            setNewCarteirinha({ carteirinha: '', paciente: '', id_paciente: '', id_pagamento: '', status: 'ativo' });
-            setPage(1);
-            fetchCarteirinhas();
-        } catch (e) {
-            alert("Erro ao criar: " + (e.response?.data?.detail || e.message));
-        } finally { setLoading(false); }
+        doCreate({
+            carteirinha: newCarteirinha.carteirinha,
+            paciente: newCarteirinha.paciente,
+            id_paciente: newCarteirinha.id_paciente ? parseInt(newCarteirinha.id_paciente) : null,
+            id_pagamento: newCarteirinha.id_pagamento ? parseInt(newCarteirinha.id_pagamento) : null,
+            status: newCarteirinha.status
+        });
     };
 
     const convenioMap = {
@@ -377,6 +392,57 @@ export default function Carteirinhas() {
                     </div>
                 </div>
             </Card>
+
+            {/* ID Paciente duplicado — alerta */}
+            {dupWarning && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+                    <div className="bg-surface border border-border rounded-lg p-6 max-w-md w-full space-y-5 shadow-xl">
+                        <div className="flex items-start gap-3">
+                            <AlertTriangle className="text-amber-400 mt-0.5 shrink-0" size={24} />
+                            <div>
+                                <h3 className="font-semibold text-text-primary">ID Paciente já cadastrado</h3>
+                                <p className="text-sm text-text-secondary mt-1">
+                                    Já existe paciente com o mesmo id cadastrado{' '}
+                                    <strong className="text-text-primary">
+                                        {dupWarning.existing?.paciente || dupWarning.existing?.carteirinha}
+                                    </strong>
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                            <button
+                                type="button"
+                                className="text-xs text-text-secondary hover:text-text-primary underline"
+                                onClick={() => setDupWarning(null)}
+                            >
+                                Cancelar
+                            </button>
+                            <div className="flex gap-2">
+                                <Button
+                                    variant="secondary"
+                                    title="Editar cadastro existente"
+                                    onClick={() => {
+                                        const existing = dupWarning.existing;
+                                        setDupWarning(null);
+                                        setShowCreateForm(false);
+                                        setEditingItem(existing); // abre a edição do cadastro existente
+                                    }}
+                                >
+                                    <Edit size={14} className="mr-1" /> Editar
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    title="Prosseguir com novo cadastro"
+                                    isLoading={loading}
+                                    onClick={() => doCreate(dupWarning.payload, true)}
+                                >
+                                    Salvar
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Edit Modal */}
             {editingItem && (
