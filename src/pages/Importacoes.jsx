@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import api from '../services/api';
 import Pagination from '../components/Pagination';
-import { Play, Filter, RefreshCcw, Trash2, Clock, CheckCircle, AlertCircle, XCircle, Users, Activity, ShieldCheck, ShieldAlert, ShieldOff, FileSpreadsheet, Download, Upload } from 'lucide-react';
+import { Play, Filter, RefreshCcw, Trash2, Clock, CheckCircle, AlertCircle, XCircle, Users, Activity, ShieldCheck, ShieldAlert, ShieldOff, FileSpreadsheet, Download, Upload, Search } from 'lucide-react';
 import { formatDateTime, maskCarteirinha, validateCarteirinha } from '../utils/formatters';
 import SearchableSelect from '../components/SearchableSelect';
 
@@ -52,6 +52,20 @@ export default function Importacoes() {
   const [evoPacientes, setEvoPacientes] = useState([]);
   const [evoExporting, setEvoExporting] = useState(false);
 
+  // Evoluções — listagem com filtros, paginação e dashboard
+  const [evoFilters, setEvoFilters] = useState({ paciente: '', status: '' });
+  const [evoPacienteBusca, setEvoPacienteBusca] = useState(''); // input controlado (debounce p/ filtro)
+  const [evoPage, setEvoPage] = useState(1);
+  const [evoPageSize, setEvoPageSize] = useState(25);
+  const [evoTotal, setEvoTotal] = useState(0);
+  const [evoDashboard, setEvoDashboard] = useState(null); // {total, pacientes, ok, pendente, erro}
+  const [evoLoading, setEvoLoading] = useState(false);
+
+  // Mesma proteção de corrida da listagem de jobs (resposta lenta antiga não
+  // pode sobrescrever a filtrada)
+  const evoRequestIdRef = useRef(0);
+  const evoInFlightRef = useRef(false);
+
   // Modal State
   const [selectedJobForModal, setSelectedJobForModal] = useState(null);
 
@@ -70,12 +84,13 @@ export default function Importacoes() {
 
   useEffect(() => {
     if (activeTab === 'importacoes') fetchJobs();
+    else fetchEvolucoesPacientes();
     const interval = setInterval(() => {
       if (activeTab === 'importacoes') {
         fetchJobs(true);
         fetchStats();
       } else {
-        fetchEvolucoesPacientes();
+        fetchEvolucoesPacientes(true);
       }
     }, 5000); // Poll for updates (somente da aba ativa)
     return () => {
@@ -84,7 +99,18 @@ export default function Importacoes() {
       // sua resposta (obsoleta) nunca sobrescreva a próxima
       if (abortControllerRef.current) abortControllerRef.current.abort();
     };
-  }, [page, pageSize, filters, activeTab]);
+  }, [page, pageSize, filters, activeTab, evoPage, evoPageSize, evoFilters]);
+
+  // Busca por paciente com debounce (400ms): evita uma requisição por tecla.
+  // Updater funcional: status alterado durante a espera não pode ser revertido
+  // pelo closure antigo do debounce.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setEvoFilters(prev => (prev.paciente === evoPacienteBusca ? prev : { ...prev, paciente: evoPacienteBusca }));
+      setEvoPage(1);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [evoPacienteBusca]);
 
   const [stats, setStats] = useState(null);
 
@@ -255,11 +281,41 @@ export default function Importacoes() {
   };
 
   // ── Evoluções CLMF (OP2 ImprimirEvolucao) ─────────────────────────────────
-  const fetchEvolucoesPacientes = async () => {
+  const fetchEvolucoesPacientes = async (fromPoll = false) => {
+    if (fromPoll && evoInFlightRef.current) return;
+    const requestId = ++evoRequestIdRef.current;
+    evoInFlightRef.current = true;
+    setEvoLoading(true);
     try {
-      const res = await api.get('/evolucoes/jobs');
+      const params = {
+        limit: evoPageSize,
+        skip: (evoPage - 1) * evoPageSize,
+      };
+      if (evoFilters.paciente) params.paciente = evoFilters.paciente.trim();
+      if (evoFilters.status) params.status = evoFilters.status;
+
+      const res = await api.get('/evolucoes/jobs', { params });
+
+      // Aplicar somente se esta ainda é a busca mais recente
+      if (requestId !== evoRequestIdRef.current) return;
+
       setEvoPacientes(res.data.data || []);
-    } catch (e) { console.error("Error fetching evolucoes panel", e); }
+      setEvoTotal(res.data.total || 0);
+      if (res.data.resumo) setEvoDashboard(res.data.resumo);
+    } catch (e) {
+      console.error("Error fetching evolucoes panel", e);
+    } finally {
+      if (requestId === evoRequestIdRef.current) {
+        evoInFlightRef.current = false;
+        setEvoLoading(false);
+      }
+    }
+  };
+
+  // Card do dashboard atua como atalho do filtro de status (clique alterna)
+  const handleEvoStatusCard = (status) => {
+    setEvoFilters(prev => ({ ...prev, status: prev.status === status ? '' : status }));
+    setEvoPage(1);
   };
 
   const handleEvolucoesUpload = async () => {
@@ -558,6 +614,63 @@ export default function Importacoes() {
 
       {/* Evoluções CLMF (OP2 ImprimirEvolucao) — aba própria */}
       {activeTab === 'evolucoes' && (
+      <>
+      {/* Dashboard superior — contadores de itens do escopo filtrado (paciente).
+          Clique no card alterna o filtro de status da listagem. */}
+      {evoDashboard && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card
+            className={`flex items-center gap-3 p-4 cursor-pointer transition-all hover:border-primary/50 ${
+              evoFilters.status === '' ? 'ring-2 ring-primary/40' : ''
+            }`}
+            onClick={() => { setEvoFilters(prev => ({ ...prev, status: '' })); setEvoPage(1); }}
+          >
+            <div className="bg-primary/10 p-2 rounded-full text-primary"><FileSpreadsheet size={20} /></div>
+            <div>
+              <div className="text-xs text-text-secondary">Total de Itens</div>
+              <div className="text-xl font-bold text-text-primary">{evoDashboard.total}</div>
+              <div className="text-[10px] text-text-secondary">{evoDashboard.pacientes} paciente(s)</div>
+            </div>
+          </Card>
+          <Card
+            className={`flex items-center gap-3 p-4 cursor-pointer transition-all hover:border-emerald-500/50 ${
+              evoFilters.status === 'ok' ? 'ring-2 ring-emerald-500/40' : ''
+            }`}
+            onClick={() => handleEvoStatusCard('ok')}
+          >
+            <div className="bg-emerald-500/10 p-2 rounded-full text-emerald-500"><CheckCircle size={20} /></div>
+            <div>
+              <div className="text-xs text-text-secondary">OK</div>
+              <div className="text-xl font-bold text-text-primary">{evoDashboard.ok}</div>
+            </div>
+          </Card>
+          <Card
+            className={`flex items-center gap-3 p-4 cursor-pointer transition-all hover:border-amber-500/50 ${
+              evoFilters.status === 'pendente' ? 'ring-2 ring-amber-500/40' : ''
+            }`}
+            onClick={() => handleEvoStatusCard('pendente')}
+          >
+            <div className="bg-amber-500/10 p-2 rounded-full text-amber-500"><Clock size={20} /></div>
+            <div>
+              <div className="text-xs text-text-secondary">Pendente</div>
+              <div className="text-xl font-bold text-text-primary">{evoDashboard.pendente}</div>
+            </div>
+          </Card>
+          <Card
+            className={`flex items-center gap-3 p-4 cursor-pointer transition-all hover:border-red-500/50 ${
+              evoFilters.status === 'erro' ? 'ring-2 ring-red-500/40' : ''
+            }`}
+            onClick={() => handleEvoStatusCard('erro')}
+          >
+            <div className="bg-red-500/10 p-2 rounded-full text-red-500"><XCircle size={20} /></div>
+            <div>
+              <div className="text-xs text-text-secondary">Erro</div>
+              <div className="text-xl font-bold text-text-primary">{evoDashboard.erro}</div>
+            </div>
+          </Card>
+        </div>
+      )}
+
       <Card noPadding className="relative z-20">
         <div className="p-4 border-b border-border flex flex-wrap gap-4 items-end bg-surface/30">
           <div className="flex items-center gap-2 mr-2">
@@ -598,7 +711,50 @@ export default function Importacoes() {
           </div>
         </div>
 
-        <div className="overflow-x-auto max-h-[320px] overflow-y-auto">
+        {/* Filtros da listagem */}
+        <div className="p-4 border-b border-border flex flex-wrap gap-4 items-end bg-surface/30">
+          <div className="w-72">
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Paciente</label>
+            <div className="relative">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none" />
+              <Input
+                type="text"
+                placeholder="Buscar por nome ou idPaciente..."
+                value={evoPacienteBusca}
+                onChange={(e) => setEvoPacienteBusca(e.target.value)}
+                className="pl-9 py-1.5 text-sm"
+              />
+            </div>
+          </div>
+          <div className="w-40">
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Status</label>
+            <Select
+              value={evoFilters.status}
+              onChange={e => { setEvoFilters({ ...evoFilters, status: e.target.value }); setEvoPage(1); }}
+              className="py-1.5 text-sm"
+            >
+              <option value="">Todos</option>
+              <option value="ok">OK</option>
+              <option value="pendente">Pendente</option>
+              <option value="erro">Erro</option>
+            </Select>
+          </div>
+          {(evoFilters.paciente || evoFilters.status) && (
+            <Button
+              variant="ghost"
+              className="h-[38px] text-text-secondary"
+              onClick={() => { setEvoFilters({ paciente: '', status: '' }); setEvoPacienteBusca(''); setEvoPage(1); }}
+            >
+              <Filter size={14} /> Limpar filtros
+            </Button>
+          )}
+          <div className="ml-auto flex items-center gap-1.5 text-text-secondary">
+            <RefreshCcw size={14} className={evoLoading ? 'animate-spin' : 'opacity-40'} />
+            <span className="text-xs">{evoLoading ? 'Atualizando...' : 'Atualiza a cada 5s'}</span>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto max-h-[65vh] overflow-y-auto">
           <table className="w-full">
             <thead className="bg-slate-900/50 text-text-secondary text-xs uppercase tracking-wider sticky top-0">
               <tr>
@@ -625,17 +781,33 @@ export default function Importacoes() {
                   <td className="px-6 py-3 text-sm text-text-secondary whitespace-nowrap">{formatDateTime(p.updated_at)}</td>
                 </tr>
               ))}
-              {evoPacientes.length === 0 && (
+              {evoPacientes.length === 0 && !evoLoading && (
                 <tr>
                   <td colSpan="8" className="px-6 py-8 text-center text-text-secondary">
-                    Nenhuma importação de evoluções ainda. Envie a planilha modelo (.xlsx) acima.
+                    {evoFilters.paciente || evoFilters.status
+                      ? 'Nenhum paciente encontrado com os filtros atuais.'
+                      : 'Nenhuma importação de evoluções ainda. Envie a planilha modelo (.xlsx) acima.'}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
+
+        {/* Paginação */}
+        {evoTotal > 0 && (
+          <div className="p-4 border-t border-border">
+            <Pagination
+              currentPage={evoPage}
+              totalItems={evoTotal}
+              pageSize={evoPageSize}
+              onPageChange={setEvoPage}
+              onPageSizeChange={(s) => { setEvoPageSize(s); setEvoPage(1); }}
+            />
+          </div>
+        )}
       </Card>
+      </>
       )}
 
       {/* Jobs List */}
