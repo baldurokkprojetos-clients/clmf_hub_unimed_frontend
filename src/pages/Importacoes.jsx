@@ -53,8 +53,9 @@ export default function Importacoes() {
   const [evoExporting, setEvoExporting] = useState(false);
 
   // Evoluções — listagem com filtros, paginação e dashboard
-  const [evoFilters, setEvoFilters] = useState({ paciente: '', status: '' });
+  const [evoFilters, setEvoFilters] = useState({ paciente: '', status: '', lote: '' });
   const [evoPacienteBusca, setEvoPacienteBusca] = useState(''); // input controlado (debounce p/ filtro)
+  const [evoLotes, setEvoLotes] = useState([]);
   const [evoPage, setEvoPage] = useState(1);
   const [evoPageSize, setEvoPageSize] = useState(25);
   const [evoTotal, setEvoTotal] = useState(0);
@@ -111,6 +112,18 @@ export default function Importacoes() {
     }, 400);
     return () => clearTimeout(t);
   }, [evoPacienteBusca]);
+
+  // Lotes disponíveis para o filtro (recarrega ao entrar na aba e após upload)
+  const fetchEvoLotes = async () => {
+    try {
+      const res = await api.get('/evolucoes/lotes');
+      setEvoLotes(res.data.data || []);
+    } catch (e) { console.error("Error fetching lotes", e); }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'evolucoes') fetchEvoLotes();
+  }, [activeTab]);
 
   const [stats, setStats] = useState(null);
 
@@ -293,6 +306,7 @@ export default function Importacoes() {
       };
       if (evoFilters.paciente) params.paciente = evoFilters.paciente.trim();
       if (evoFilters.status) params.status = evoFilters.status;
+      if (evoFilters.lote) params.lote = evoFilters.lote;
 
       const res = await api.get('/evolucoes/jobs', { params });
 
@@ -333,6 +347,7 @@ export default function Importacoes() {
       setEvoFileInputKey(k => k + 1);
       fetchJobs();
       fetchEvolucoesPacientes();
+      fetchEvoLotes();
     } catch (e) {
       alert("Erro no upload de evoluções: " + (e.response?.data?.detail || e.message));
     } finally {
@@ -700,6 +715,11 @@ export default function Importacoes() {
                 )}
                 <b>{evoResumo.jobs}</b> jobs · <b>{evoResumo.itens}</b> itens ·{' '}
                 <b>{evoResumo.pacientes}</b> pacientes{evoResumo.background ? ' (previsto)' : ''}
+                {evoResumo.pares_duplicados > 0 && (
+                  <span className="text-amber-400" title="Pares (paciente+data) que já têm job de lote anterior: itens que faltam serão reconciliados como PENDENTE; os já processados mantêm o status">
+                    {' '}· {evoResumo.itens_duplicados} itens em {evoResumo.pares_duplicados} pares já importados
+                  </span>
+                )}
                 {(evoResumo.erros_planilha?.length || evoResumo.falhas?.length) ? (
                   <span className="text-amber-400"> · {(evoResumo.erros_planilha?.length || 0) + (evoResumo.falhas?.length || 0)} aviso(s)</span>
                 ) : null}
@@ -739,11 +759,26 @@ export default function Importacoes() {
               <option value="erro">Erro</option>
             </Select>
           </div>
-          {(evoFilters.paciente || evoFilters.status) && (
+          <div className="w-52">
+            <label className="block text-xs font-semibold text-text-secondary mb-1">Lote</label>
+            <Select
+              value={evoFilters.lote}
+              onChange={e => { setEvoFilters({ ...evoFilters, lote: e.target.value }); setEvoPage(1); }}
+              className="py-1.5 text-sm"
+            >
+              <option value="">Todos os lotes</option>
+              {evoLotes.map(l => (
+                <option key={l.lote} value={l.lote}>
+                  {l.nome} ({l.itens} itens)
+                </option>
+              ))}
+            </Select>
+          </div>
+          {(evoFilters.paciente || evoFilters.status || evoFilters.lote) && (
             <Button
               variant="ghost"
               className="h-[38px] text-text-secondary"
-              onClick={() => { setEvoFilters({ paciente: '', status: '' }); setEvoPacienteBusca(''); setEvoPage(1); }}
+              onClick={() => { setEvoFilters({ paciente: '', status: '', lote: '' }); setEvoPacienteBusca(''); setEvoPage(1); }}
             >
               <Filter size={14} /> Limpar filtros
             </Button>
