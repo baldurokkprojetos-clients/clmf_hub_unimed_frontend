@@ -47,6 +47,7 @@ export default function Importacoes() {
   // Evoluções CLMF (OP2 ImprimirEvolucao)
   const [evoFile, setEvoFile] = useState(null);
   const [evoFileInputKey, setEvoFileInputKey] = useState(0);
+  const [evoIncremento, setEvoIncremento] = useState('60'); // duração da sessão: 60=1h | 30=30min
   const [evoUploading, setEvoUploading] = useState(false);
   const [evoResumo, setEvoResumo] = useState(null);
   const [evoPacientes, setEvoPacientes] = useState([]);
@@ -341,6 +342,7 @@ export default function Importacoes() {
     try {
       const fd = new FormData();
       fd.append('file', evoFile);
+      fd.append('incremento_min', evoIncremento);
       const res = await api.post('/evolucoes/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       setEvoResumo(res.data);
       setEvoFile(null);
@@ -703,6 +705,19 @@ export default function Importacoes() {
                          bg-surface file:mr-3 file:py-1.5 file:px-3 file:rounded-l-lg file:border-0
                          file:bg-slate-800 file:text-text-primary file:text-sm file:cursor-pointer"
             />
+          </div>
+          <div className="w-40">
+            <label className="block text-xs font-semibold text-text-secondary mb-1" title="horaFinal = horaInicial + duração">
+              Duração da Sessão
+            </label>
+            <Select
+              value={evoIncremento}
+              onChange={(e) => setEvoIncremento(e.target.value)}
+              className="py-1.5 text-sm"
+            >
+              <option value="60">1 hora</option>
+              <option value="30">30 minutos</option>
+            </Select>
           </div>
           <Button onClick={handleEvolucoesUpload} disabled={evoUploading} className="h-[38px]">
             <Upload size={16} /> {evoUploading ? 'Importando...' : 'Importar'}
