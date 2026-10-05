@@ -52,6 +52,7 @@ export default function Importacoes() {
   const [evoResumo, setEvoResumo] = useState(null);
   const [evoPacientes, setEvoPacientes] = useState([]);
   const [evoExporting, setEvoExporting] = useState(false);
+  const [evoReprocLoading, setEvoReprocLoading] = useState(false);
 
   // Evoluções — listagem com filtros, paginação e dashboard
   const [evoFilters, setEvoFilters] = useState({ paciente: '', status: '', lote: '' });
@@ -374,6 +375,26 @@ export default function Importacoes() {
       alert("Erro ao exportar status: " + (e.response?.data?.detail || e.message));
     } finally {
       setEvoExporting(false);
+    }
+  };
+
+  // Reprocessar itens pendentes: reenfileira jobs finalizados que têm itens
+  // PENDENTE (o worker pula os já OK e refaz apenas os pendentes)
+  const handleReprocessarPendentes = async () => {
+    const incluirErros = confirm(
+      "Reprocessar itens PENDENTES de jobs finalizados?\n\nOK = apenas PENDENTES\nCancelar = incluir também itens ERRO (ex.: PDF sem link)"
+    );
+    setEvoReprocLoading(true);
+    try {
+      const res = await api.post('/evolucoes/reprocessar-pendentes', null, {
+        params: { incluir_erros: !incluirErros },
+      });
+      alert(res.data?.mensagem || JSON.stringify(res.data));
+      fetchEvolucoesPacientes();
+    } catch (e) {
+      alert("Erro ao reprocessar pendentes: " + (e.response?.data?.detail || e.message));
+    } finally {
+      setEvoReprocLoading(false);
     }
   };
 
@@ -740,6 +761,15 @@ export default function Importacoes() {
                 ) : null}
               </span>
             )}
+            <Button
+              variant="ghost"
+              onClick={handleReprocessarPendentes}
+              disabled={evoReprocLoading}
+              className="h-[38px] text-amber-400 hover:text-amber-300"
+              title="Reenfileira jobs finalizados com itens PENDENTE — o worker refaz apenas os itens pendentes (OK não é afetado)"
+            >
+              <RefreshCcw size={16} /> {evoReprocLoading ? 'Reenfileirando...' : 'Reprocessar Pendentes'}
+            </Button>
             <Button variant="ghost" onClick={handleExportEvolucoes} disabled={evoExporting} className="h-[38px] text-emerald-400 hover:text-emerald-300">
               <Download size={16} /> {evoExporting ? 'Gerando...' : 'Exportar Status'}
             </Button>
