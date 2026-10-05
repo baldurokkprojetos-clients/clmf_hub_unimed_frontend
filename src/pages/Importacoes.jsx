@@ -378,16 +378,22 @@ export default function Importacoes() {
     }
   };
 
-  // Reprocessar itens pendentes: reenfileira jobs finalizados que têm itens
-  // PENDENTE (o worker pula os já OK e refaz apenas os pendentes)
+  // Reprocessar itens pendentes: reenfileira jobs finalizados do LOTE
+  // SELECIONADO no filtro que têm itens PENDENTE (o worker pula os já OK e
+  // refaz apenas os pendentes — nunca global, para não misturar lotes)
   const handleReprocessarPendentes = async () => {
+    const lote = evoFilters?.lote;
+    if (!lote) {
+      alert("Selecione o LOTE no filtro do painel antes de reprocessar — o reprocesso é sempre escopado a um lote (nunca global).");
+      return;
+    }
     const incluirErros = confirm(
-      "Reprocessar itens PENDENTES de jobs finalizados?\n\nOK = apenas PENDENTES\nCancelar = incluir também itens ERRO (ex.: PDF sem link)"
+      `Reprocessar itens PENDENTES do lote:\n${lote}\n\nOK = apenas PENDENTES\nCancelar = incluir também itens ERRO (ex.: PDF sem link)`
     );
     setEvoReprocLoading(true);
     try {
       const res = await api.post('/evolucoes/reprocessar-pendentes', null, {
-        params: { incluir_erros: !incluirErros },
+        params: { lote, incluir_erros: !incluirErros },
       });
       alert(res.data?.mensagem || JSON.stringify(res.data));
       fetchEvolucoesPacientes();
