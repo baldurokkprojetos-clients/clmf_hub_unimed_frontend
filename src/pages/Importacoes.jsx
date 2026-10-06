@@ -54,6 +54,36 @@ export default function Importacoes() {
   const [evoExporting, setEvoExporting] = useState(false);
   const [evoReprocLoading, setEvoReprocLoading] = useState(false);
 
+  // Cron Unimed (criação diária 23:01 UTC) — toggle persistido no banco
+  const [cronAtivo, setCronAtivo] = useState(null);
+  const [cronToggling, setCronToggling] = useState(false);
+
+  const fetchCronUnimed = async () => {
+    try {
+      const res = await api.get('/cron/unimed');
+      setCronAtivo(res.data.ativo);
+    } catch (e) { console.error("Error fetching cron status", e); }
+  };
+
+  const handleToggleCronUnimed = async () => {
+    const novo = !cronAtivo;
+    if (!confirm(
+      novo
+        ? "ATIVAR o cron Unimed?\nOs jobs diários voltarão a ser criados às 23:01 UTC (20:01 Brasília)."
+        : "PAUSAR o cron Unimed?\nNenhum job diário será criado até reativar (jobs já criados não são afetados)."
+    )) return;
+    setCronToggling(true);
+    try {
+      const res = await api.post('/cron/unimed', { ativo: novo });
+      setCronAtivo(res.data.ativo);
+      alert(res.data.mensagem);
+    } catch (e) {
+      alert("Erro ao alterar cron: " + (e.response?.data?.detail || e.message));
+    } finally {
+      setCronToggling(false);
+    }
+  };
+
   // Evoluções — listagem com filtros, paginação e dashboard
   const [evoFilters, setEvoFilters] = useState({ paciente: '', status: '', lote: '' });
   const [evoPacienteBusca, setEvoPacienteBusca] = useState(''); // input controlado (debounce p/ filtro)
@@ -83,6 +113,7 @@ export default function Importacoes() {
     fetchCarteirinhas();
     fetchStats();
     fetchEvolucoesPacientes();
+    fetchCronUnimed();
   }, []);
 
   useEffect(() => {
@@ -442,9 +473,20 @@ export default function Importacoes() {
           <h1 className="text-2xl font-bold text-text-primary">Importações / Jobs</h1>
           <span className="text-text-secondary text-sm">Usuário: {username}</span>
         </div>
-        <div className="items-end">
-          <div className="text-xs text-text-secondary mb-1 text-right">Workers Linkados:</div>
-          <WorkerList compact={true} />
+        <div className="items-end flex gap-4">
+          <Button
+            variant="secondary"
+            onClick={handleToggleCronUnimed}
+            disabled={cronAtivo === null || cronToggling}
+            className={`h-[38px] ${cronAtivo ? 'text-emerald-400 hover:text-emerald-300' : 'text-amber-400 hover:text-amber-300'}`}
+            title="Cron de criação diária de jobs Unimed (23:01 UTC / 20:01 Brasília) — persistido no banco"
+          >
+            <Clock size={15} /> Cron Unimed: {cronAtivo === null ? '…' : (cronAtivo ? 'Ativo' : 'Pausado')}
+          </Button>
+          <div>
+            <div className="text-xs text-text-secondary mb-1 text-right">Workers Linkados:</div>
+            <WorkerList compact={true} />
+          </div>
         </div>
       </div>
 
