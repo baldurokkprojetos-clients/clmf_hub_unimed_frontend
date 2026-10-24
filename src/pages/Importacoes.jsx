@@ -800,8 +800,8 @@ export default function Importacoes() {
                 <b>{evoResumo.jobs}</b> jobs · <b>{evoResumo.itens}</b> itens ·{' '}
                 <b>{evoResumo.pacientes}</b> pacientes{evoResumo.background ? ' (previsto)' : ''}
                 {evoResumo.pares_duplicados > 0 && (
-                  <span className="text-amber-400" title="Pares (paciente+data) que já têm job de lote anterior: itens que faltam serão reconciliados como PENDENTE; os já processados mantêm o status">
-                    {' '}· {evoResumo.itens_duplicados} itens em {evoResumo.pares_duplicados} pares já importados
+                  <span className="text-amber-400" title="Pares (paciente+data) que já têm job de lote anterior: todos os itens DESTE arquivo serão reprocessados — voltam a PENDENTE no lote novo e os PDFs são baixados novamente">
+                    {' '}· {evoResumo.itens_duplicados} itens em {evoResumo.pares_duplicados} pares já importados — serão reprocessados
                   </span>
                 )}
                 {(evoResumo.erros_planilha?.length || evoResumo.falhas?.length) ? (
