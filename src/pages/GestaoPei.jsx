@@ -151,6 +151,7 @@ export default function GestaoPei() {
                             <option value="">Todos</option>
                             <option value="Validado">Validado</option>
                             <option value="Pendente">Pendente</option>
+                            <option value="Inativo">Inativo</option>
                         </Select>
                     </div>
                     <div className="w-40">
@@ -202,7 +203,7 @@ export default function GestaoPei() {
                         </thead>
                         <tbody className="divide-y divide-border">
                             {data.map(item => (
-                                <tr key={item.id} className="hover:bg-slate-800/30 transition-colors">
+                                <tr key={item.id} className={`transition-colors ${item.ativo === false ? 'opacity-50' : 'hover:bg-slate-800/30'}`}>
                                     <td className="px-6 py-4 text-sm text-text-primary whitespace-nowrap">{item.paciente}</td>
                                     <td className="px-6 py-4 text-sm text-text-secondary font-mono whitespace-nowrap">{item.carteirinha}</td>
                                     <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{item.codigo_procedimento}</td>
@@ -224,9 +225,13 @@ export default function GestaoPei() {
                                         {item.validade ? new Date(item.validade).toLocaleDateString() : '-'}
                                     </td>
                                     <td className="px-6 py-4 text-sm">
-                                        <Badge variant={item.status === 'Validado' ? 'success' : 'warning'}>
-                                            {item.status}
-                                        </Badge>
+                                        {item.ativo === false ? (
+                                            <Badge variant="default" >Inativo</Badge>
+                                        ) : (
+                                            <Badge variant={item.status === 'Validado' ? 'success' : 'warning'}>
+                                                {item.status}
+                                            </Badge>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 text-sm">
                                         {editingItem?.id === item.id ? (
@@ -238,8 +243,8 @@ export default function GestaoPei() {
                                             <Button
                                                 size="sm" variant="ghost"
                                                 onClick={() => { setEditingItem(item); setEditValue(item.pei_semanal); }}
-                                                disabled={item.status !== 'Pendente'}
-                                                className={item.status !== 'Pendente' ? 'opacity-30 cursor-not-allowed' : ''}
+                                                disabled={item.status !== 'Pendente' || item.ativo === false}
+                                                className={item.status !== 'Pendente' || item.ativo === false ? 'opacity-30 cursor-not-allowed' : ''}
                                             >
                                                 <Edit2 size={16} className="text-primary" />
                                             </Button>

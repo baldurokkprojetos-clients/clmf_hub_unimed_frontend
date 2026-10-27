@@ -164,6 +164,9 @@ const manualSections = [
                 <h3 className="text-lg font-semibold text-text-primary">Filtros Disponíveis</h3>
                 <ul className="list-disc list-inside space-y-2 text-text-secondary ml-4">
                     <li><strong>Paciente / Carteirinha</strong>: Selecione via campo de busca inteligente (SearchableSelect). Permite digitar para filtrar ou colar o número da carteirinha diretamente.</li>
+                    <li><strong>Guia</strong>: Busca parcial pelo número da guia.</li>
+                    <li><strong>Status</strong>: Filtra por <Badge variant="success">Ativa</Badge> (padrão), <Badge variant="default">Inativa</Badge> ou Todas. Guias sem reprocessamento há mais de 24h tornam-se Inativas automaticamente; uma nova atualização as reativa.</li>
+                    <li><strong>Validação</strong>: Filtra pelo vínculo do prestador — Válida, Bloqueada ou Sem validação.</li>
                     <li><strong>Data Importação Início</strong>: Filtra guias importadas a partir de uma data.</li>
                     <li><strong>Data Importação Fim</strong>: Filtra guias importadas até uma data.</li>
                     <li>Clique em <strong>Limpar</strong> para remover todos os filtros.</li>
@@ -175,7 +178,7 @@ const manualSections = [
                     <li><strong>Carteira / Paciente</strong> — Nome do paciente vinculado à carteirinha.</li>
                     <li><strong>Guia</strong> — Número da guia (clicável para ordenar).</li>
                     <li><strong>Data Autoriz.</strong> — Data de autorização da guia (clicável para ordenar).</li>
-                    <li><strong>Status</strong> — Indica a validação do prestador para aquela guia:
+                    <li><strong>Status</strong> — Combina o ciclo de vida da guia (<Badge variant="success">Ativa</Badge> / <Badge variant="default">Inativa</Badge>) com a validação do prestador:
                         <div className="flex flex-col gap-1 mt-2 ml-4">
                             <span className="flex items-center gap-2 text-emerald-400"><ShieldCheck size={16} /> <strong>Válida</strong> — Guia pertencente à rede.</span>
                             <span className="flex items-center gap-2 text-amber-400"><ShieldAlert size={16} /> <strong>Bloqueada</strong> — Prestador não pertence à rede (passe o mouse para ver o erro).</span>
@@ -218,8 +221,16 @@ const manualSections = [
                     </li>
                     <li>
                         <strong>Exportação</strong>: Gere planilhas Excel com os dados de validade e status dos PEIs.
+                        PEIs <Badge variant="default">Inativo</Badge> (guia-base sem atualização há mais de 24h) não são exportados.
                     </li>
                 </ol>
+
+                <h3 className="text-lg font-semibold text-text-primary">Status do PEI</h3>
+                <ul className="list-disc list-inside space-y-1 text-text-secondary ml-4">
+                    <li><Badge variant="success">Validado</Badge> — PEI validado (cálculo exato ou override manual).</li>
+                    <li><Badge variant="warning">Pendente</Badge> — PEI pendente de cálculo ou validação manual.</li>
+                    <li><Badge variant="default">Inativo</Badge> — Guia-base sem atualização há mais de 24h. Filtre por Status = Inativo para auditá-los; uma nova atualização da guia reativa o PEI automaticamente.</li>
+                </ul>
             </div>
         )
     },

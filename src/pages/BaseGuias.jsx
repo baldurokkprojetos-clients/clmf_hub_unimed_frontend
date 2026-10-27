@@ -8,7 +8,8 @@ import SearchableSelect from '../components/SearchableSelect';
 // Design System
 import Button from '../components/ui/Button';
 import Card from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
+import { Input, Select } from '../components/ui/Input';
+import Badge from '../components/ui/Badge';
 
 // Loading Overlay Component
 const ProcessingModal = ({ isOpen }) => {
@@ -40,7 +41,10 @@ export default function BaseGuias() {
     const [filters, setFilters] = useState({
         created_at_start: '',
         created_at_end: '',
-        carteirinha_id: ''
+        carteirinha_id: '',
+        guia: '',
+        status: 'ativa',
+        validacao: ''
     });
 
     const [sortConfig, setSortConfig] = useState({ key: 'created_at', direction: 'desc' });
@@ -63,7 +67,9 @@ export default function BaseGuias() {
                 skip: (page - 1) * pageSize,
             };
 
+            if (filters.guia) params.guia = filters.guia;
             if (filters.status) params.status = filters.status;
+            if (filters.validacao) params.validacao = filters.validacao;
             if (filters.created_at_start) params.created_at_start = filters.created_at_start;
             if (filters.created_at_end) params.created_at_end = filters.created_at_end;
             if (filters.carteirinha_id && filters.carteirinha_id !== "") {
@@ -115,7 +121,10 @@ export default function BaseGuias() {
         setFilters({
             created_at_start: '',
             created_at_end: '',
-            carteirinha_id: ''
+            carteirinha_id: '',
+            guia: '',
+            status: 'ativa',
+            validacao: ''
         });
         setPage(1);
     };
@@ -124,6 +133,9 @@ export default function BaseGuias() {
         setIsExporting(true);
         try {
             const params = {};
+            if (filters.guia) params.guia = filters.guia;
+            if (filters.status) params.status = filters.status;
+            if (filters.validacao) params.validacao = filters.validacao;
             if (filters.created_at_start) params.created_at_start = filters.created_at_start;
             if (filters.created_at_end) params.created_at_end = filters.created_at_end;
             if (filters.carteirinha_id) params.carteirinha_id = filters.carteirinha_id;
@@ -167,6 +179,50 @@ export default function BaseGuias() {
                             }}
                             placeholder="Selecione ou Cole..."
                         />
+                    </div>
+
+                    <div className="w-full md:w-44">
+                        <label className="block text-xs font-semibold text-text-secondary mb-1">Guia</label>
+                        <Input
+                            type="text"
+                            placeholder="Nº da guia..."
+                            value={filters.guia}
+                            onChange={e => {
+                                setFilters({ ...filters, guia: e.target.value });
+                                setPage(1);
+                            }}
+                        />
+                    </div>
+
+                    <div className="w-full md:w-36">
+                        <label className="block text-xs font-semibold text-text-secondary mb-1">Status</label>
+                        <Select
+                            value={filters.status}
+                            onChange={e => {
+                                setFilters({ ...filters, status: e.target.value });
+                                setPage(1);
+                            }}
+                        >
+                            <option value="ativa">Ativa</option>
+                            <option value="inativa">Inativa</option>
+                            <option value="">Todas</option>
+                        </Select>
+                    </div>
+
+                    <div className="w-full md:w-44">
+                        <label className="block text-xs font-semibold text-text-secondary mb-1">Validação</label>
+                        <Select
+                            value={filters.validacao}
+                            onChange={e => {
+                                setFilters({ ...filters, validacao: e.target.value });
+                                setPage(1);
+                            }}
+                        >
+                            <option value="">Todas</option>
+                            <option value="valida">Válida</option>
+                            <option value="bloqueada">Bloqueada</option>
+                            <option value="sem_validacao">Sem validação</option>
+                        </Select>
                     </div>
 
                     <div className="w-full md:w-40">
@@ -241,28 +297,33 @@ export default function BaseGuias() {
                                             <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{formatDate(g.validade)}</td>
                                             <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{g.codigo_procedimento}</td>
                                             <td className="px-6 py-4 text-sm whitespace-nowrap">
-                                                {(() => {
-                                                    const json = g.valida_prestador;
-                                                    if (!json || json.Vinculo_prestador === 'Null' || !json.Vinculo_prestador) {
+                                                <div className="flex items-center gap-2">
+                                                    <Badge variant={g.ativo === false ? 'default' : 'success'}>
+                                                        {g.ativo === false ? 'Inativa' : 'Ativa'}
+                                                    </Badge>
+                                                    {(() => {
+                                                        const json = g.valida_prestador;
+                                                        if (!json || json.Vinculo_prestador === 'Null' || !json.Vinculo_prestador) {
+                                                            return (
+                                                                <span className="text-red-400" title="Sem informação de validação">
+                                                                    <ShieldOff size={18} />
+                                                                </span>
+                                                            );
+                                                        }
+                                                        if (json.Vinculo_prestador === 'Guia Válida') {
+                                                            return (
+                                                                <span className="text-emerald-400" title="Guia Válida">
+                                                                    <ShieldCheck size={18} />
+                                                                </span>
+                                                            );
+                                                        }
                                                         return (
-                                                            <span className="text-red-400" title="Sem informação de validação">
-                                                                <ShieldOff size={18} />
+                                                            <span className="text-amber-400" title={json.Vinculo_prestador}>
+                                                                <ShieldAlert size={18} />
                                                             </span>
                                                         );
-                                                    }
-                                                    if (json.Vinculo_prestador === 'Guia Válida') {
-                                                        return (
-                                                            <span className="text-emerald-400" title="Guia Válida">
-                                                                <ShieldCheck size={18} />
-                                                            </span>
-                                                        );
-                                                    }
-                                                    return (
-                                                        <span className="text-amber-400" title={json.Vinculo_prestador}>
-                                                            <ShieldAlert size={18} />
-                                                        </span>
-                                                    );
-                                                })()}
+                                                    })()}
+                                                </div>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-text-secondary whitespace-nowrap">{g.qtde_solicitada}</td>
                                             <td className="px-6 py-4 text-sm text-text-primary font-bold whitespace-nowrap">{g.sessoes_autorizadas}</td>
@@ -270,7 +331,7 @@ export default function BaseGuias() {
                                     );
                                 })}
                                 {sortedGuias.length === 0 && (
-                                    <tr><td colSpan="9" className="px-6 py-10 text-center text-text-secondary">Nenhuma guia encontrada.</td></tr>
+                                    <tr><td colSpan="10" className="px-6 py-10 text-center text-text-secondary">Nenhuma guia encontrada.</td></tr>
                                 )}
                             </tbody>
                         </table>
